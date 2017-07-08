@@ -1,0 +1,99 @@
+.navbar {
+    background-image: none;
+}
+
+.navbar-default {
+    background-color: darkblue;
+    border-bottom-color: red;
+}
+
+span.hljs-type {
+    font-weight: normal;
+}
+
+span.hljs-keyword {
+    font-weight: normal;
+}
+
+span.com {
+    color: gray;
+}
+
+div.frame {
+    width:100%;
+    border:1px solid #ccc;
+    margin-bottom: 10px;
+}
+
+pre.frame {
+    color:black;
+    display: block;
+    margin-bottom:0;
+    overflow-x: auto;
+    white-space: pre;
+    word-wrap: normal;
+    word-break: break-all;
+}
+
+code.java {
+    background: white;
+}
+
+img.dog {
+    margin: 0;
+}
+
+td.dog {
+    text-align: center;
+}
+
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a:active,
+.navbar-default .navbar-nav > .active > a:focus {
+    background-color: darkblue;
+}
+
+.dropdown-menu > li > a:hover,
+.dropdown-menu > li > a:active,
+.dropdown-menu > li > a:focus {
+    background-color: darkblue;
+}
+
+.dropdown-menu > li.active {
+    background-color: darkblue;
+}
+
+.dropdown-menu > li > ul > li > a:hover,
+.dropdown-menu > li > ul > li > a:active,
+.dropdown-menu > li > ul > li > a:focus {
+    background-color: darkblue;
+}
+
+.navbar-default .navbar-nav > .open > a,
+.navbar-default .navbar-nav > .open > a:active,
+.navbar-default .navbar-nav > .open > a:hover,
+.navbar-default .navbar-nav > .open > a:focus {
+    background-color: darkblue;
+}
+
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:active,
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a:focus {
+    background-color: darkblue;
+}
+
+
+.navbar-default .navbar-toggle,
+.navbar-default .navbar-toggle:active,
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+    background-color: darkblue;
+}
+
+.dropdown-menu > .active > a,
+.dropdown-menu > .active > a:active,
+.dropdown-menu > .active > a:focus {
+    background-color: darkblue;
+}
