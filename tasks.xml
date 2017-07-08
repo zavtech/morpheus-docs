@@ -1,44 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project name="MyProject" basedir=".">
+<project name="morpheus-docs" basedir=".">
 
-    <target name="build">
-        <exec executable="mkdocs">
-            <arg value="build"/>
-        </exec>
-    </target>
+  <target name="build">
+    <exec executable="mkdocs">
+      <arg value="build"/>
+    </exec>
+  </target>
 
 
-    <target name="publish" depends="build">
+  <target name="publish" depends="build">
 
-        <input message="Please enter the version for these docs" addproperty="version"/>
+    <input message="Please enter the version for these docs" addproperty="version"/>
 
-        <echo message="Creating new docs directory on remote server for version ${version}..."/>
-        <exec executable="ssh" failonerror="true">
-            <arg value="zavtech@zavtech"/>
-            <arg value="mkdir -p zavtech.com/morpheus/versions/${version}/docs"/>
-        </exec>
+    <echo message="Creating new docs directory on remote server for version ${version}..."/>
+    <exec executable="ssh" failonerror="true">
+      <arg value="zavtech@zavtech"/>
+      <arg value="mkdir -p zavtech.com/morpheus/versions/${version}/docs"/>
+    </exec>
 
-        <echo message="Copying docs to remote server..."/>
-        <exec executable="scp" failonerror="true" dir="${basedir}/site">
-            <arg value="-r"/>
-            <arg value="./"/>
-            <arg value="zavtech@zavtech:zavtech.com/morpheus/versions/${version}/docs"/>
-        </exec>
+    <echo message="Copying docs to remote server..."/>
+    <exec executable="scp" failonerror="true" dir="${basedir}/site">
+      <arg value="-r"/>
+      <arg value="./"/>
+      <arg value="zavtech@zavtech:zavtech.com/morpheus/versions/${version}/docs"/>
+    </exec>
 
-        <echo message="Linking docs to version ${version}..."/>
-        <exec executable="ssh" failonerror="true">
-            <arg value="zavtech@zavtech"/>
-            <arg value="cd zavtech.com/morpheus; ln -s versions/${version}/docs docs"/>
-        </exec>
+    <echo message="Linking docs to version ${version}..."/>
+    <exec executable="ssh" failonerror="true">
+      <arg value="zavtech@zavtech"/>
+      <arg value="cd zavtech.com/morpheus; ln -s versions/${version}/docs docs"/>
+    </exec>
 
-        <echo message="Copying landing page to remote server..."/>
-        <exec executable="scp" failonerror="true" dir="${basedir}/website">
-            <arg value="-r"/>
-            <arg value="./"/>
-            <arg value="zavtech@zavtech:zavtech.com/morpheus"/>
-        </exec>
+    <echo message="Copying landing page to remote server..."/>
+    <exec executable="scp" failonerror="true" dir="${basedir}/website">
+      <arg value="-r"/>
+      <arg value="./"/>
+      <arg value="zavtech@zavtech:zavtech.com/morpheus"/>
+    </exec>
 
-    </target>
+  </target>
 
 </project>
