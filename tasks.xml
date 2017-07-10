@@ -29,6 +29,10 @@
     <echo message="Linking docs to version ${version}..."/>
     <exec executable="ssh" failonerror="true">
       <arg value="zavtech@zavtech"/>
+      <arg value="cd zavtech.com/morpheus; rm docs"/>
+    </exec>
+    <exec executable="ssh" failonerror="true">
+      <arg value="zavtech@zavtech"/>
       <arg value="cd zavtech.com/morpheus; ln -s versions/${version}/docs docs"/>
     </exec>
 
