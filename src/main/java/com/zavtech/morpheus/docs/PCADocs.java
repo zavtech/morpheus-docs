@@ -119,7 +119,7 @@ public class PCADocs {
         final DataFrame<Integer,String> quotes = getQuotes(tickers, start, end);
         final Array<LocalDate> dates = quotes.colAt("Date").<LocalDate>distinct().sort(true);
         final LocalDate minDate = dates.getValue(20);
-        final Array<LocalDate> returnDates = dates.filter(d -> d.compareTo(minDate) > 0);
+        final Array<LocalDate> returnDates = dates.filter(v -> v.getValue().compareTo(minDate) > 0);
         final DataFrame<LocalDate,String> returns = DataFrame.ofDoubles(returnDates, tickers, v -> 0d);
         final long t1 = System.nanoTime();
         quotes.rows().forEach(row -> {

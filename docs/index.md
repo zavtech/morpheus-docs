@@ -1,23 +1,43 @@
 ### Introduction
 
-The Morpheus library is designed to facilitate the development of high performance software involving large datasets for both offline 
-and real-time analysis on the [Java Virtual Machine](https://en.wikipedia.org/wiki/Java_virtual_machine) (JVM). The library is written 
-in Java with extensive use of lambdas, but is of course accessible to all JVM languages.
+The Morpheus library is designed to facilitate the development of high performance analytical software involving large datasets for 
+both offline and real-time analysis on the [Java Virtual Machine](https://en.wikipedia.org/wiki/Java_virtual_machine) (JVM). The 
+library is written in Java 8 with extensive use of lambdas, but is accessible to all JVM languages.
 
-At its core, Morpheus provides a versatile two-dimensional memory efficient tabular data structure called a `DataFrame` (first 
-popularised in [R](https://www.datacamp.com/community/tutorials/15-easy-solutions-data-frame-problems-r#gs.TjuEoj8)), with a powerful 
-API to execute various transformations and analytical operations on the underlying data. There are standard functions to compute summary 
-statistics, perform [Linear Regressions](https://en.wikipedia.org/wiki/Linear_regression), [Principal Component Analysis](https://en.wikipedia.org/wiki/Principal_component_analysis) 
-(PCA) and other analyses. The `DataFrame` is indexed in both the row and column dimension, allowing data to be efficiently sorted, sliced, 
-grouped, and aggregated along either axis.
+#### Motivation
+
+At its core, Morpheus provides a versatile two-dimensional **memory efficient** tabular data structure called a `DataFrame`, similar to
+that first popularised in [R](https://www.datacamp.com/community/tutorials/15-easy-solutions-data-frame-problems-r#gs.TjuEoj8). While
+dynamically typed scientific computing languages like [R](https://www.r-project.org/), [Python](https://www.python.org/) & [Matlab](https://www.mathworks.com/products/matlab.html) 
+are great for doing research, they are not well suited for large scale production systems as they become extremely difficult to maintain, 
+and dangerous to refactor. The Morpheus library attempts to retain the power and versatility of the `DataFrame` concept, while providing a 
+much more **type safe** and **self describing** set of interfaces, which should make developing, maintaining & scaling code complexity much 
+easier. 
+
+Another advantage of the Morpheus library over some other scientific computing platforms is that it is extremely good at **scaling** on 
+[multi-core processor](https://en.wikipedia.org/wiki/Multi-core_processor) architectures given the powerful [threading](https://en.wikipedia.org/wiki/Multithreading_(computer_architecture))
+capabilities of the Java Virtual Machine. Many operations on a Morpheus `DataFrame` can seamlessly be run in **parallel** by simply calling 
+`parallel()` on the entity you wish to operate on, much like with [Java 8 Streams](http://www.oracle.com/technetwork/articles/java/ma14-java-se-8-streams-2177646.html). 
+Internally, these parallel implementations are based on the Fork & Join framework, and near linear improvements in performance are observed 
+for certain types of operations as CPU cores are added.
+
+#### Capabilities    
 
 A Morpheus `DataFrame` is a column store structure where each column is represented by a Morpheus `Array` of which there are many 
-implementations, including dense, sparse and [memory mapped](https://en.wikipedia.org/wiki/Memory-mapped_file) versions. Morpheus 
-arrays are optimized and wherever possible are backed by primitive native Java arrays as these are far more efficient from a storage, 
-access and garbage collection perspective. Memory mapped Morpheus `Arrays`, while still experimental, allow very large `DataFrames` 
-to be created that require comparatvely little RAM, however obviously come with some performance deficit.
+implementations, including dense, sparse and [memory mapped](https://en.wikipedia.org/wiki/Memory-mapped_file) versions. Morpheus arrays 
+are optimized and wherever possible are backed by primitive native Java arrays (even for types such as `LocalDate`, `LocalDateTime` etc...) 
+as these are far more efficient from a storage, access and garbage collection perspective. Memory mapped Morpheus `Arrays`, while still 
+experimental, allow very large `DataFrames` to be created using off-heap storage that are backed by files.
 
-Morpheus also aims to provide a standard mechanism to load datasets from various data providers, and the hope is that this API will 
+While the complete feature set of the Morpheus `DataFrame` is still evolving, there are already many powerful APIs to affect complex 
+transformations and analytical operations with ease. There are standard functions to compute summary statistics, perform various types 
+of [Linear Regressions](https://en.wikipedia.org/wiki/Linear_regression), apply [Principal Component Analysis](https://en.wikipedia.org/wiki/Principal_component_analysis) 
+(PCA) to mention just a few. The `DataFrame` is indexed in both the row and column dimension, allowing data to be efficiently **sorted**, 
+**sliced**, **grouped**, and **aggregated** along either axis.
+
+#### Data Access
+
+Morpheus also aims to provide a standard mechanism to load datasets from various data providers. The hope is that this API will 
 be embraced by the community in order to grow the catalogue of supported data sources. Currently, providers are implemented to enable 
 data to be loaded from [Quandl](https://www.quandl.com/), [Yahoo Finance](http://finance.yahoo.com/), [Google Finance](https://www.google.com/finance), 
 [The World Bank](http://www.worldbank.org/) and the [Federal Reserve Bank of St Louis](https://research.stlouisfed.org/fred2/).
@@ -53,7 +73,7 @@ DataFrame.read().csv(options -> {
   
 This example demonstrates the functional nature of the Morpheus API, where many method return types are in fact a `DataFrame` and 
 therefore allow this form of method chaining. In this example, the methods `csv()`, `select()`, `add()`, and `sort()` all return
-a frame. in some cases the same frame that the method operates on, or in other cases a filter or shallow copy of the frame being
+a frame. In some cases the same frame that the method operates on, or in other cases a filter or shallow copy of the frame being
 operated on. The first 10 rows of the transformed dataset in this example looks as follows, with the newly added column appearing
 on the far right of the frame.
 
@@ -74,16 +94,16 @@ on the far right of the frame.
 
 #### A Regression Example
 
-The Morpheus API includes a regression interface in order to fit data to a linear model using either [OLS](regression/ols/), [WLS](regression/wls/) or 
-[GLS](regression/gls/). The code below uses the same car dataset introduced in the previous example, and regresses **Horsepower** on **EngineSize**, 
-which one would think would show a positively correlated relationship. The code example prints the model results to standard out, which is shown below, 
+The Morpheus API includes a regression interface in order to fit data to a linear model using either [OLS](regression/ols/), 
+[WLS](regression/wls/) or [GLS](regression/gls/). The code below uses the same car dataset introduced in the previous example, 
+and regresses **Horsepower** on **EngineSize**. The code example prints the model results to standard out, which is shown below, 
 and then creates a scatter chart with the regression line clearly displayed.
 
 <?prettify?>
 ```java
 //Load the data
 DataFrame<Integer,String> data = DataFrame.read().csv(options -> {
-    options.setResource("https://vincentarelbundock.github.io/Rdatasets/csv/MASS/Cars93.csv");
+    options.setResource("http://zavtech.com/data/samples/cars93.csv");
     options.setExcludeColumnIndexes(0);
 });
 
@@ -109,6 +129,8 @@ data.regress().ols(regressand, regressor, true, model -> {
 });
 ```
 
+
+
 <pre class="frame">
 ==============================================================================================
                                    Linear Regression Results                                                            
@@ -133,18 +155,17 @@ Durbin-Watson:                        1.9591
 
 #### A More Elaborate Example
 
-Through the [UK Government Open Data](https://data.gov.uk/) initiative, it is possible to access all UK residential real-estate 
-transaction [records](https://data.gov.uk/dataset/land-registry-monthly-price-paid-data) from 1995 through to current day. The data 
-is presented in CSV format, and contains numerous [columns](https://www.gov.uk/guidance/about-the-price-paid-data), including such 
-information as the transaction date, price paid, fully qualified address (including postal code), property type, lease type (Freehold vs
-Leasehold) and so on.
+It is possible to access all UK residential real-estate transaction records from 1995 through to current day via the [UK Government Open Data](https://data.gov.uk/) 
+initiative. The data is presented in CSV format, and contains numerous [columns](https://www.gov.uk/guidance/about-the-price-paid-data), 
+including such information as the transaction date, price paid, fully qualified address (including postal code), property type, lease type 
+(Freehold vs Leasehold) and so on.
 
 In the example below, we use this data in order to compute the median nominal price (not inflation adjusted) of an **apartment** for 
 each year between 1995 through 2014 for a subset of the largest cities in the UK. There are about 20 million records in the unfiltered 
 dataset between 1993 and 2014, and while it takes a fairly long time to load and parse (approximately 3.5GB of data), Morpheus executes 
 the analytical portion of the code in about 5 seconds (not including load time) on a standard Apple Macbook Pro purchased in late 2013. 
-Total execution time on this laptop is around **30 seconds** with parallel processing (see call to `parallel()` below), and about **52 seconds** 
-with sequential processing. The full code for this example is as follows.
+Total execution time on this laptop is around **30 seconds** with parallel processing (see call to `parallel()` below), and about 
+**52 seconds** with sequential processing. The full code for this example is as follows.
 
 <?prettify?>
 ```java
@@ -210,33 +231,87 @@ Chart.of(plotFrame, chart -> {
     chart.show();
 });
 ```
-The percent change in nominal median prices for **apartments** in the subset of chosen cities is shown in the plot below. It is pretty 
-clear that London did not suffer any nominal house price decline as a result of the Global Financial Crisis (GFC), however not all cities 
-in the UK proved as resilient. What is slightly surprising is that some of the poorer northern cities saw a higher rate of appreciation in 
-the 2003 to 2006 period compared to London. One thing to note is that while London did not see any nominal price reduction, there was certainly 
-a fairly severe correction in terms of EUR and USD since Pound Sterling depreciated heavily against these currencies during the GFC.
+The percent change in nominal median prices for **apartments** in the subset of chosen cities is shown in the plot below. It shows that London 
+did not suffer any nominal house price decline as a result of the Global Financial Crisis (GFC), however not all cities in the UK proved as 
+resilient. What is slightly surprising is that some of the less affluent northern cities saw a higher rate of appreciation in the 2003 to 2006 
+period compared to London. One thing to note is that while London did not see any nominal price reduction, there was certainly a fairly severe 
+correction in terms of EUR and USD since Pound Sterling depreciated heavily against these currencies during the GFC.
 
 ![Plot](images/uk-house-prices.png)
 
-### Maven
+### Maven Artifacts
 
-Morpheus is published to Maven Central so it can be easily added as a dependency in your build tool of choice.
+Morpheus is published to Maven Central so it can be easily added as a dependency in your build tool of choice. The codebase is currently
+divided into 5 repositories to allow each module to be evolved independently. The core module, which is aptly named [morpheus-core](https://github.com/zavtech/morpheus-core),
+is the foundational library on which all other modules depend. The various Maven artifacts are as follows: 
+
+**Morpheus Core**
+
+The [foundational](https://github.com/zavtech/morpheus-core) library that contains Morpheus Arrays, DataFrames and other key interfaces & implementations.
 
 ```xml
 <dependency>
     <groupId>org.zavtech</groupId>
     <artifactId>morpheus-core</artifactId>
-    <version>1.0.0</version>
+    <version>${VERSION}</version>
 </dependency>
 ```
 
-### Download
+**Morpheus Visualization**
 
-Morpheus binaries and source code can be downloaded from Github [here](https://github.com/Zavster/morpheus/releases)
+The [visualization](https://github.com/zavtech/morpheus-viz) components to display `DataFrames` in charts and tables.
+
+```xml
+<dependency>
+    <groupId>org.zavtech</groupId>
+    <artifactId>morpheus-viz</artifactId>
+    <version>${VERSION}</version>
+</dependency>
+```
+
+**Morpheus Quandl**
+
+The [adapter](https://github.com/zavtech/morpheus-quandl) to load data from [Quandl](http://www.quandl.com)
+
+```xml
+<dependency>
+    <groupId>org.zavtech</groupId>
+    <artifactId>morpheus-quandl</artifactId>
+    <version>${VERSION}</version>
+</dependency>
+```
+
+**Morpheus Google**
+
+The [adapter](https://github.com/zavtech/morpheus-google) to load data from [Google Finance](http://finance.google.com)
+
+```xml
+<dependency>
+    <groupId>org.zavtech</groupId>
+    <artifactId>morpheus-google</artifactId>
+    <version>${VERSION}</version>
+</dependency>
+```
+
+**Morpheus Yahoo**
+
+The [adapter](https://github.com/zavtech/morpheus-yahoo) to load data from [Yahoo Finance](http://finance.yahoo.com)
+
+```xml
+<dependency>
+    <groupId>org.zavtech</groupId>
+    <artifactId>morpheus-yahoo</artifactId>
+    <version>${VERSION}</version>
+</dependency>
+```
 
 ### Javadocs
 
-Morpheus Javadocs can be accessed online [here](http://www.zavtech.com/morpheus/api) or downloaded [here](http://www.zavtech.com/morpheus/downloads/morpheus-javadocs.zip)
+Morpheus Javadocs can be accessed online [here](http://www.zavtech.com/morpheus/api).
+
+### Build Status
+
+A Continuous Integration build server can be accessed [here](http://zavnas.com/jenkins/), which builds code after each merge.
 
 ### License
 

@@ -377,7 +377,7 @@ public class WLSDocs {
         final DataFrame<Integer,String> copy = frame.copy();
         copy.addAll(ols.getResiduals());
         copy.cols().add("Weights", weights);
-        copy.out().writeCsv(new File("/Users/witdxav/wls_dataset_diagnostics.csv"));
+        copy.write().csv(o -> o.setFile(new File("/Users/witdxav/wls_dataset_diagnostics.csv")));
 
         Thread.currentThread().join();
     }
