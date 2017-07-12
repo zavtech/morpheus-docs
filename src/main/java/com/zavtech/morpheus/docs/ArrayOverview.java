@@ -34,6 +34,7 @@ import org.testng.annotations.Test;
 import com.zavtech.morpheus.array.Array;
 import com.zavtech.morpheus.array.ArrayStyle;
 import com.zavtech.morpheus.array.ArrayValue;
+import com.zavtech.morpheus.util.Bounds;
 
 public class ArrayOverview {
 
@@ -396,17 +397,95 @@ public class ArrayOverview {
 
 
     @Test()
-    public void bounds() {
-
-    }
-
-    @Test()
     public void readOnly() {
         //Create array of random doubles, with default value NaN
         Array<Double> array = Array.of(Double.class, 1000, Double.NaN).applyDoubles(v -> Math.random());
         //Create a light-weight read only wrapper
         Array<Double> readOnly = array.readOnly();
     }
+
+
+    @Test
+    public void filling() {
+        //Create array of random doubles, with default value NaN
+        Array<Double> array = Array.of(Double.class, 1000, Double.NaN);
+        //Fill indexes 10-20 (inclusive - exclusive) with value 25
+        array.fill(25d, 10, 20);
+        //Check results
+        IntStream.range(10, 20).forEach(i -> {
+            Assert.assertEquals(array.getDouble(i), 25d);
+        });
+    }
+
+
+    @Test()
+    public void distinct() {
+        //Create a random with seed
+        Random random = new Random(10);
+        //Create Array of random LocalDates, all elements initially null
+        Array<LocalDate> dates = Array.of(LocalDate.class, 1000);
+        //Populate with some random dates that will likely have duplicates
+        dates.applyValues(v -> LocalDate.now().plusDays(random.nextInt(20)));
+        //Generate distinct Array
+        Array<LocalDate> distinct1 = dates.distinct();
+        //Generate distinct limiting to first 5 matches
+        Array<LocalDate> distinct2 = dates.distinct(5);
+        //Check expected results
+        Assert.assertEquals(distinct1.length(), 20);
+        Assert.assertEquals(distinct2.length(), 5);
+    }
+
+
+    @Test()
+    public void bounds() {
+        //Create a random with seed
+        Random random = new Random(21);
+        //Create Array of random doubles, all elements initially null
+        Array<Double> array = Array.of(Double.class, 1000).applyDoubles(v -> random.nextDouble() * 100);
+        //Compute upper and lower bounds in one pass
+        Optional<Bounds<Double>> bounds = array.bounds();
+        //Confirm we have bounds
+        Assert.assertTrue(bounds.isPresent());
+        //Confirm expected results
+        bounds.ifPresent(b -> {
+            Assert.assertEquals(b.lower(), 0.13021930271921445);
+            Assert.assertEquals(b.upper(), 99.9557586162974);
+            Assert.assertEquals(b.lower(), array.min().get());
+            Assert.assertEquals(b.upper(), array.max().get());
+            Assert.assertEquals(b.lower(), array.stats().min());
+            Assert.assertEquals(b.upper(), array.stats().max());
+        });
+    }
+
+
+    @Test()
+    public void nullCheck() {
+        //Create a random with seed
+        Random random = new Random(21);
+        //Create Array of random doubles, all elements initially null
+        Array<Double> array = Array.of(Double.class, 1000).applyDoubles(v -> random.nextDouble() * 100);
+        //Set some values to NaN
+        array.fill(Double.NaN, 10, 20);
+        //Set some values to null, which is the same as NaN for double precision
+        array.fill(null, 20, 30);
+        //Filter out NaN values using is null
+        Array<Double> filtered = array.filter(v -> !v.isNull());
+        //Assert length
+        Assert.assertEquals(filtered.length(), array.length() - 20);
+    }
+
+
+    @Test()
+    public void swapping() {
+        //Create Array of doubles
+        Array<Double> array = Array.of(10d, 20d, 30d, 40d);
+        //Swap values
+        array.swap(0, 3);
+        //Asset values swapped
+        Assert.assertEquals(array.getDouble(0), 40d);
+        Assert.assertEquals(array.getDouble(3), 10d);
+    }
+
 
 
 }
