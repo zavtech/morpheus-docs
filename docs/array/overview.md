@@ -605,12 +605,116 @@ Array<Double> readOnly = array.readOnly();
 
 ### Filling
 
-To be completed...
+Filling an `Array` either over a range of indexes or the entire array with a specific value is supported by
+two overloaded `fill()` methods. Below we create a random `Array` initialized with all `NaN` values, and
+then proceed to fill indexes 10 through 20 with a fixed value.
+
+<?prettify?>
+```java
+//Create array of random doubles, with default value NaN
+Array<Double> array = Array.of(Double.class, 1000, Double.NaN);
+//Fill indexes 10-20 (inclusive - exclusive) with value 25
+array.fill(25d, 10, 20);
+//Check results
+IntStream.range(10, 20).forEach(i -> {
+    Assert.assertEquals(array.getDouble(i), 25d);
+});
+```
 
 ### Distinct
 
-To be completed...
+Finding the distinct elements in an array is easy enough as you can simply collect the values in a `Set<T>`,
+however this would once again come with the cost of boxing when the `Array` is backed by a primitive type.
+In order to avoid this, two overloaded `distinct()` methods are provided, one which returns a new `Array` with
+all the distinct values, and the second returns a truncated array of distinct values based on a user specified 
+limit. The code below illustrates and example of how to use these.
+
+<?prettify?>
+```java
+//Create a random with seed
+Random random = new Random(10);
+//Create Array of random LocalDates, all elements initially null
+Array<LocalDate> dates = Array.of(LocalDate.class, 1000);
+//Populate with some random dates that will likely have duplicates
+dates.applyValues(v -> LocalDate.now().plusDays(random.nextInt(20)));
+//Generate distinct Array
+Array<LocalDate> distinct1 = dates.distinct();
+//Generate distinct limiting to first 5 matches
+Array<LocalDate> distinct2 = dates.distinct(5);
+//Check expected results
+Assert.assertEquals(distinct1.length(), 20);
+Assert.assertEquals(distinct2.length(), 5);
+```
 
 ### Bounds
 
-To be completed...
+Computing the upper and lower bounds of an `Array` can be achieved in a number of ways, as shown by the code
+below. Firstly the `bounds()` method computes the min/max in one pass, and will work for any value that is 
+`Comparable`. Alternatively, the `min()` and `max()` methods perform the same logic however only return
+the lower or upper bound respectively. Below we also confirm that the `stats()` interface to the `Array`
+generates the same results since in this example we are using an array of double precision values. If the 
+`Array` was non-numeric, such as `LocalDate` for example, then the stats interface would not work and result 
+in an `ArrayException`.
+
+<?prettify?>
+```java
+//Create a random with seed
+Random random = new Random(21);
+//Create Array of random doubles, all elements initially null
+Array<Double> array = Array.of(Double.class, 1000).applyDoubles(v -> random.nextDouble() * 100);
+//Compute upper and lower bounds in one pass
+Optional<Bounds<Double>> bounds = array.bounds();
+//Confirm we have bounds
+Assert.assertTrue(bounds.isPresent());
+//Confirm expected results
+bounds.ifPresent(b -> {
+    Assert.assertEquals(b.lower(), 0.13021930271921445);
+    Assert.assertEquals(b.upper(), 99.9557586162974);
+    Assert.assertEquals(b.lower(), array.min().get());
+    Assert.assertEquals(b.upper(), array.max().get());
+    Assert.assertEquals(b.lower(), array.stats().min());
+    Assert.assertEquals(b.upper(), array.stats().max());
+});
+```
+
+### Null Check
+
+A convenience method named `isNull()` exists on the `Array` and `ArrayValue` interface. In the former case,
+it takes the index of the array element to check for null, in the latter no arguments are required since the
+`ArrayValue` is already pointing at some entry. This method is convenient as it can avoid accessing the value
+to check for null, which may again incur a boxing cost. In addition, `Double.NaN` is considered to be null
+so one can avoid this special null check case as shown by the example below.
+
+<?prettify?>
+```java
+//Create a random with seed
+Random random = new Random(21);
+//Create Array of random doubles, all elements initially null
+Array<Double> array = Array.of(Double.class, 1000).applyDoubles(v -> random.nextDouble() * 100);
+//Set some values to NaN
+array.fill(Double.NaN, 10, 20);
+//Set some values to null, which is the same as NaN for double precision
+array.fill(null, 20, 30);
+//Filter out NaN values using is null
+Array<Double> filtered = array.filter(v -> !v.isNull());
+//Assert length
+Assert.assertEquals(filtered.length(), array.length() - 20);
+```
+
+### Swapping
+
+Swapping elements in an `Array` without having to access them directly is also supported, which means that optimized 
+implementations, such as for the `LocalDate` type for example, can avoid boxing the internal representation (long 
+epoch day values in the case of LocalDate). The `swap()` method is used as part of the sort algorithm, and a simple 
+example of how to use it unrelated to sorting is shown below.
+
+<?prettify?>
+```java
+//Create Array of doubles
+Array<Double> array = Array.of(10d, 20d, 30d, 40d);
+//Swap values
+array.swap(0, 3);
+//Assert values swapped
+Assert.assertEquals(array.getDouble(0), 40d);
+Assert.assertEquals(array.getDouble(3), 10d);
+```
