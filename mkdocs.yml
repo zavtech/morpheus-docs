@@ -15,6 +15,7 @@ extra_javascript:
   - https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js
   - https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/highlight.min.js
   - https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML
+  - http://www.zavtech.com/morpheus/docs/javascript/analytics.js
 
 
 pages:
