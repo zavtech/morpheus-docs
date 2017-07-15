@@ -3,7 +3,7 @@
 In order to scale large datasets on the [Java Virtual Machine](https://en.wikipedia.org/wiki/Java_virtual_machine) 
 (JVM) it is necessary to limit large arrays to primitive types, as these are far more efficient from a 
 memory allocation & de-allocation perspective. The reason for this is that primitive arrays are represented 
-as a single Object and a **contiguous block of memory**. Object arrays on the other hand not only include the 
+as a single Object and a **contiguous block of memory**. Object arrays on the other hand not only incur the 
 memory overhead of each object header in the array, but also impose a significant burden on the Garbage 
 Collector. The section on [performance](performance) provides some hard numbers to demonstrate the comparative 
 costs of primitive arrays and their boxed counterparts. Future versions of Java which will likely 
