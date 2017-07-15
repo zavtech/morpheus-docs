@@ -305,6 +305,10 @@ The [adapter](https://github.com/zavtech/morpheus-yahoo) to load data from [Yaho
 </dependency>
 ```
 
+### Q&A Forum
+
+A Questions & Answers forum has been setup using Google Groups and is accessible [here](https://groups.google.com/forum/#!forum/morpheus-lib)
+
 ### Javadocs
 
 Morpheus Javadocs can be accessed online [here](http://www.zavtech.com/morpheus/api).
