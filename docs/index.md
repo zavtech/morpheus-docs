@@ -251,7 +251,7 @@ The [foundational](https://github.com/zavtech/morpheus-core) library that contai
 
 ```xml
 <dependency>
-    <groupId>org.zavtech</groupId>
+    <groupId>com.zavtech</groupId>
     <artifactId>morpheus-core</artifactId>
     <version>${VERSION}</version>
 </dependency>
@@ -263,7 +263,7 @@ The [visualization](https://github.com/zavtech/morpheus-viz) components to displ
 
 ```xml
 <dependency>
-    <groupId>org.zavtech</groupId>
+    <groupId>com.zavtech</groupId>
     <artifactId>morpheus-viz</artifactId>
     <version>${VERSION}</version>
 </dependency>
@@ -275,7 +275,7 @@ The [adapter](https://github.com/zavtech/morpheus-quandl) to load data from [Qua
 
 ```xml
 <dependency>
-    <groupId>org.zavtech</groupId>
+    <groupId>com.zavtech</groupId>
     <artifactId>morpheus-quandl</artifactId>
     <version>${VERSION}</version>
 </dependency>
@@ -287,7 +287,7 @@ The [adapter](https://github.com/zavtech/morpheus-google) to load data from [Goo
 
 ```xml
 <dependency>
-    <groupId>org.zavtech</groupId>
+    <groupId>com.zavtech</groupId>
     <artifactId>morpheus-google</artifactId>
     <version>${VERSION}</version>
 </dependency>
@@ -299,7 +299,7 @@ The [adapter](https://github.com/zavtech/morpheus-yahoo) to load data from [Yaho
 
 ```xml
 <dependency>
-    <groupId>org.zavtech</groupId>
+    <groupId>com.zavtech</groupId>
     <artifactId>morpheus-yahoo</artifactId>
     <version>${VERSION}</version>
 </dependency>
