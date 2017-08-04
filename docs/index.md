@@ -237,7 +237,9 @@ resilient. What is slightly surprising is that some of the less affluent norther
 period compared to London. One thing to note is that while London did not see any nominal price reduction, there was certainly a fairly severe 
 correction in terms of EUR and USD since Pound Sterling depreciated heavily against these currencies during the GFC.
 
-![Plot](images/uk-house-prices.png)
+<p align="center">
+    <img src="images/uk-house-prices.png"/>
+</p>
 
 ### Maven Artifacts
 
@@ -320,3 +322,7 @@ A Continuous Integration build server can be accessed [here](http://zavnas.com/j
 ### License
 
 Morpheus is released under the [Apache Software Foundation License Version 2](https://www.apache.org/licenses/LICENSE-2.0).
+
+<p align="center">
+    <img style="background: none; border: none;" src="images/morpheus-logo1.png"/>
+</p>

@@ -60,7 +60,7 @@ public class RangePerf1 {
             return array;
         });
 
-        final DataFrame<String,String> times = DataFrame.union(
+        final DataFrame<String,String> times = DataFrame.combineFirst(
             stats1.getRunStats(),
             stats2.getRunStats(),
             stats3.getRunStats()
