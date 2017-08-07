@@ -7,7 +7,7 @@ site_author: Xavier Witdouck
 copyright: Copyright (C) 2014-2017 Xavier Witdouck
 
 extra_css:
-  - ./css/code.css
+  - ./css/morpheus.css
   - https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/styles/default.min.css
 
 
@@ -42,7 +42,9 @@ pages:
     - Principal Component Analysis: analysis/pca.md
     - Linear Algebra: analysis/linearalgebra.md
     - Time Series Analysis: analysis/timeseries.md
-  - Visualization: visualization.md
+  - Visualization:
+      - Charts: viz/charts.md
+      - Tables: viz/tables.md
   - Data Sources:
     - Quandl: providers/quandl.md
     - Google Finance: providers/google.md

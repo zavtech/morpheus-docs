@@ -18,14 +18,14 @@ package com.zavtech.morpheus.docs;
 import com.zavtech.morpheus.frame.DataFrame;
 import com.zavtech.morpheus.util.Tuple;
 
-class DemoData {
+public class DemoData {
 
 
     /**
      * Returns the ONS population dataset for UK boroughs
      * @return  the ONS population dataser
      */
-    static DataFrame<Tuple,String> loadPopulationDataset() {
+    public static DataFrame<Tuple,String> loadPopulationDataset() {
         return DataFrame.read().csv(options -> {
             options.setResource("http://tinyurl.com/ons-population-year");
             options.setRowKeyParser(Tuple.class, row -> Tuple.of(Integer.parseInt(row[1]), row[2]));
@@ -42,7 +42,7 @@ class DemoData {
      * Returns the ONS population dataset for UK boroughs, and convert counts to weights
      * @return  the ONS population dataset, expressed as population weights
      */
-    static DataFrame<Tuple,String> loadPopulationDatasetWeights() {
+    public static DataFrame<Tuple,String> loadPopulationDatasetWeights() {
         return DataFrame.read().<Tuple>csv(options -> {
             options.setResource("http://tinyurl.com/ons-population-year");
             options.setRowKeyParser(Tuple.class, row -> Tuple.of(Integer.parseInt(row[1]), row[2]));
@@ -70,7 +70,7 @@ class DemoData {
      * @param year      the year for ATP results
      * @return          the ATP match results
      */
-    static DataFrame<Integer,String> loadTennisMatchData(int year) {
+    public static DataFrame<Integer,String> loadTennisMatchData(int year) {
         return DataFrame.read().csv(options -> {
             options.setHeader(true);
             options.setResource("http://www.zavtech.com/data/tennis/atp/atp-" + year + ".csv");
