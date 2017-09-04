@@ -17,7 +17,10 @@ illustrate this point, consider the plots below which compare the average initia
 by the subsequent garbage collection times. The lower case `boolean`, `int`, `long` and `double`
 labels represent primitive array types while the capitalized `Boolean`, `Integer`, `Long` and `Double`
 represent the boxed versions.
-![Plot](../images/native-array-create-times.png)
+
+<p align="center">
+    <img class="chart" src="../../images/native-array-create-times.png"/>
+</p>
 **Figure 1. Expect significant dispersion in initialization times for large non-primitive arrays**
 
 While the variation in initialisation times appears to be fairly significant, the **magnitude** of the 
@@ -26,7 +29,10 @@ primitive arrays barely registers on this chart which is dominated by the result
 Primitive arrays are represented by a single object and a contiguous block of memory, so the 
 collector only needs to keep track of one reference when performing its sweep. Clearly this makes
 a profound difference in performance.
-![Plot](../images/native-array-gc-times.png)
+
+<p align="center">
+    <img class="chart" src="../../images/native-array-gc-times.png"/>
+</p>
 **Figure 2. ZonedDateTime has a great API for time zone aware dates, but it comes at a price**
 
 Using the `Instrumentation` interface introduced in Java 5, we estimate the relative sizes
@@ -36,7 +42,9 @@ length, even though its internal state is no more than a single `long` field rep
 milliseconds. Also, it appears that the boxed versions of the `boolean`, `int`, `long` and `double`
 arrays use at least 3 times more memory.
 
-![Plot](../images/native-array-memory.png)
+<p align="center">
+    <img class="chart" src="../../images/native-array-memory.png"/>
+</p>
 **Figure 3. The boxed versions of the arrays appear to take more than 2-3 times the memory of their primitive counterparts**
 
 There is work underway at Oracle to address some of these issues, however it is not yet clear
@@ -79,8 +87,10 @@ a sense of how Morpheus arrays compare to their native counterparts. As expected
 that Morpheus arrays are somewhat slower to initialize, although not alarmingly so. This differential in
 performance is not unexpected, even for the cases where no unboxing is required, as a method call 
 is necessary to set the value unlike the [] operator for native arrays. 
- 
-![Plot](../images/native-vs-morpheus-init-times.png)
+
+<p align="center">
+    <img class="chart" src="../../images/native-vs-morpheus-init-times.png"/>
+</p>
 **Figure 4. Morpheus arrays are slightly slower to initialise, but not alarmingly so - there is payback for the effort**
 
 There is a huge return on the investment made to keep everything as primitives however, and the subsequent 
@@ -90,7 +100,9 @@ created in each test. So while you pay a small performance penalty with respect 
 massive reduction in the GC load easily offsets this. Considering the _magnitude_ of the native object 
 array GC times, it feels like a good trade.
 
-![Plot](../images/native-vs-morpheus-gc-times.png)
+<p align="center">
+    <img class="chart" src="../../images/native-vs-morpheus-gc-times.png"/>
+</p>
 **Figure 5. Morpheus arrays which are based on primitives internally, are very friendly to the garbage collector**
 
 There is also a material reduction in the amount of memory required to store Morpheus arrays. Notice the huge 
@@ -98,7 +110,9 @@ drop in memory required to represent a `ZonedDateTime` array, or at least the eq
 array. Clearly it is not possible to improve on the allocated memory for primitive types, but in these cases
 Morpheus arrays match their native counterparts.
 
-![Plot](../images/native-vs-morpheus-memory.png)
+<p align="center">
+    <img class="chart" src="../../images/native-vs-morpheus-memory.png"/>
+</p>
 **Figure 6. Morpheus arrays use significantly less memory than their object counterparts**
 
 #### Iteration & Boxing
@@ -117,7 +131,9 @@ included. This presents a very different picture. In addition, iterating over a 
 is trivial and a fluent extension of the API, and in this mode, it appears that you double the performance 
 of native sequential execution on a Quad-Core machine. 
 
-![Plot](../images/native-vs-morpheus-array-sequential-vs-parallel1.png)
+<p align="center">
+    <img class="chart" src="../../images/native-vs-morpheus-array-sequential-vs-parallel1.png"/>
+</p>
 **Figure 7. Morpheus boxing & unboxing does come at a cost, but figure 8 shows the payoff**
 
 Including the subsequent GC times after each test paints a very different picture. This also helps to 
@@ -127,13 +143,15 @@ the native examples, the objects survive far longer and are heap based, thus pla
 the collector. So while the number of objects created in each test is roughly equivalent, the native examples 
 take far longer overall.
 
-![Plot](../images/native-vs-morpheus-array-sequential-vs-parallel2.png)
+<p align="center">
+    <img class="chart" src="../../images/native-vs-morpheus-array-sequential-vs-parallel2.png"/>
+</p>
 **Figure 8. Including GC times completely changes the picture, and Morpheus proves much faster overall**
 
 The code to generate the plots in figure 7 and 8 is as follows:
 
 <?prettify?>
-```
+```java
 final int sample = 5;
 final boolean includeGC = false;
 
@@ -212,21 +230,20 @@ arrayLengths.forEach(arrayLength -> {
 
 //Create title from template
 final String prefix = "LocalDateTime Array Initialization + Traversal Times";
-final String title = prefix + (includeGC ? " (including-GC)" : "(excluding-GC)");
+final String title = prefix + (includeGC ? " (including-GC)" : " (excluding-GC)");
 
 //Record chart to file
 final String fileSuffix = includeGC ? "2.png" : "1.png";
-final String filePrefix = "./morpheus-docs/docs/images/native-vs-morpheus-array-sequential-vs-parallel";
+final String filePrefix = "./docs/images/native-vs-morpheus-array-sequential-vs-parallel";
 
 //Plot results as a bar chart
-Chart.of(results, chart -> {
-    chart.plot(0).withBars(0d);
+Chart.create().withBarPlot(results, false, chart -> {
     chart.title().withText(title);
     chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
-    chart.axes().domain().label().withText("Array Length");
-    chart.axes().range(0).label().withText("Time (Milliseconds)");
+    chart.plot().axes().domain().label().withText("Array Length");
+    chart.plot().axes().range(0).label().withText("Time (Milliseconds)");
     chart.legend().on();
-    chart.writerPng(new File(filePrefix + fileSuffix), 845, 400);
+    chart.writerPng(new File(filePrefix + fileSuffix), 845, 400, true);
     chart.show();
 });
 ```
@@ -255,7 +272,9 @@ appears to offer roughly twice the performance of FastUtil as used in Morpheus. 
 test, the tables are turned, and FastUtil vastly outperforms the native `Arrays` call, and these times
 do not include any garbage collection costs incurred after the each test is completed.
 
-![Plot](../images/array-sort-native-vs-morpheus-1.png)
+<p align="center">
+    <img class="chart" src="../../images/array-sort-native-vs-morpheus-1.png"/>
+</p>
 **Figure 9. Sorting times for an array of 10 million random double precision values**
 
 In the `LocalDatTime` results below, Morpheus far outperforms the native array because it is only 
@@ -263,13 +282,15 @@ operating on the internal primitive array of longs. No boxing is required here, 
 performance gap. While this is not an entirely fair comparison, it demonstrates the benefits of
 storing everything as primitives. 
 
-![Plot](../images/array-sort-native-vs-morpheus-2.png)
+<p align="center">
+    <img class="chart" src="../../images/array-sort-native-vs-morpheus-2.png"/>
+</p>
 **Figure 10. Same test as in figure 9, but using an array of randomly ordered LocalDateTimes**
 
 The code to generate the results in figure 9 is as follows:
 
 <?prettify?>
-```
+```java
 Range<Integer> arrayLengths = Range.of(1, 11).map(i -> i * 100000);
 Array<String> labels = Array.ofStrings("Native(Seq)", "Morpheus(Seq)", "Native(Par)", "Morpheus(Par)");
 DataFrame<String,String> results = DataFrame.ofDoubles(arrayLengths.map(String::valueOf), labels);
@@ -298,16 +319,14 @@ arrayLengths.forEach(length -> {
     results.data().setDouble(label, "Morpheus(Par)", timing.data().getDouble("Mean", "Morpheus(Par)"));
 });
 
-Chart.of(results, chart -> {
-    chart.plot(0).withBars(0d);
-    chart.title().withText("Sorting Performance for Array of Random Doubles (Sample " + sample + ")");
+Chart.create().withBarPlot(results, false, chart -> {
+    chart.title().withText("Sorting Performance for Array of Random LocalDateTimes (Sample " + sample + ")");
     chart.title().withFont(new Font("Verdana", Font.PLAIN, 16));
     chart.subtitle().withText("Dual-Pivot Quick Sort (Native) vs Single-Pivot Quick Sort (FastUtil)");
     chart.subtitle().withFont(new Font("Verdana", Font.PLAIN, 14));
-    chart.axes().domain().label().withText("Array Length");
-    chart.axes().range(0).label().withText("Total Time in Milliseconds");
+    chart.plot().axes().domain().label().withText("Array Length");
+    chart.plot().axes().range(0).label().withText("Total Time in Milliseconds");
     chart.legend().on();
-    chart.writerPng(new File("./morpheus-docs/docs/images/array-sort-native-vs-morpheus-1.png"), 845, 400);
     chart.show();
 });
 ```
@@ -319,13 +338,15 @@ as min, max, variance, skew, kurtosis, auto correlation and so on. The chart bel
 calculation times for these quantities on a Morpheus array of 10 million random double precision
 values. The code used to generate this plot is also included.
 
-![Plot](../images/morpheus-stat-times.png)
+<p align="center">
+    <img class="chart" src="../../images/morpheus-stat-times.png"/>
+</p>
 **Figure 11. Calculation times for various summary statistics on a Morpheus array with 10 million elements**
 
 The code to generate these results is as follows:
 
 <?prettify?>
-```
+```java
 final int count = 10;
 final int size = 10000000;
 final Array<Double> array = Array.of(Double.class, size).applyDoubles(v -> Math.random() * 100);
@@ -345,15 +366,13 @@ final DataFrame<String,String> times = PerfStat.run(count, TimeUnit.MILLISECONDS
     tasks.put("AutCorrelation(20)", () -> array.stats().autocorr(20));
 });
 
-Chart.of(times.rows().select("Mean").transpose(), chart -> {
-    chart.plot(0).withBars(0d);
+Chart.create().withBarPlot(times.rows().select("Mean").transpose(), false, chart -> {
     chart.title().withText("Morpheus Array Statistic Calculation Times, 10 Million Entries (Sample 10)");
     chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
-    chart.axes().domain().label().withText("Stat Type");
-    chart.axes().range(0).label().withText("Time (Milliseconds)");
+    chart.plot().axes().domain().label().withText("Stat Type");
+    chart.plot().axes().range(0).label().withText("Time (Milliseconds)");
+    chart.plot().orient().horizontal();
     chart.legend().off();
-    chart.orientation().horizontal();
-    chart.writerPng(new File("./morpheus-docs/docs/images/morpheus-stat-times.png"), 845, 400);
     chart.show();
 });
 ```

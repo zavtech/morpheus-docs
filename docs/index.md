@@ -39,8 +39,8 @@ of [Linear Regressions](https://en.wikipedia.org/wiki/Linear_regression), apply 
 
 Morpheus also aims to provide a standard mechanism to load datasets from various data providers. The hope is that this API will 
 be embraced by the community in order to grow the catalogue of supported data sources. Currently, providers are implemented to enable 
-data to be loaded from [Quandl](https://www.quandl.com/), [Yahoo Finance](http://finance.yahoo.com/), [Google Finance](https://www.google.com/finance), 
-[The World Bank](http://www.worldbank.org/) and the [Federal Reserve Bank of St Louis](https://research.stlouisfed.org/fred2/).
+data to be loaded from [Quandl](https://www.quandl.com/), [The Federal Reserve](https://research.stlouisfed.org/fred2/), 
+[The World Bank](http://www.worldbank.org/), [Yahoo Finance](http://finance.yahoo.com/) and [Google Finance](https://www.google.com/finance).
 
 ### Morpheus at a Glance
 
@@ -107,29 +107,26 @@ DataFrame<Integer,String> data = DataFrame.read().csv(options -> {
     options.setExcludeColumnIndexes(0);
 });
 
-//Run OLS regression
+//Run OLS regression and plot 
 String regressand = "Horsepower";
 String regressor = "EngineSize";
 data.regress().ols(regressand, regressor, true, model -> {
     System.out.println(model);
     DataFrame<Integer,String> xy = data.cols().select(regressand, regressor);
-    Chart.of(xy, regressor, Double.class, chart -> {
-        chart.plot(0).withPoints();
-        chart.style(regressand).withColor(Color.RED).withPointsVisible(true);
-        chart.trendLine().add(regressand, regressand + " (trend)").withColor(Color.BLACK);
+    Chart.create().withScatterPlot(xy, false, regressor, chart -> {
         chart.title().withText(regressand + " regressed on " + regressor);
         chart.subtitle().withText("Single Variable Linear Regression");
-        chart.axes().domain().label().withText(regressor);
-        chart.axes().domain().format().withPattern("0.00;-0.00");
-        chart.axes().range(0).label().withText(regressand);
-        chart.axes().range(0).format().withPattern("0;-0");
+        chart.plot().style(regressand).withColor(Color.RED).withPointsVisible(true);
+        chart.plot().trend(regressand).withColor(Color.BLACK);
+        chart.plot().axes().domain().label().withText(regressor);
+        chart.plot().axes().domain().format().withPattern("0.00;-0.00");
+        chart.plot().axes().range(0).label().withText(regressand);
+        chart.plot().axes().range(0).format().withPattern("0;-0");
         chart.show();
     });
     return Optional.empty();
 });
 ```
-
-
 
 <pre class="frame">
 ==============================================================================================
@@ -150,37 +147,32 @@ Durbin-Watson:                        1.9591
 </pre>
 
 <p align="center">
-    <img src="images/ols/data-frame-ols.png"/>
+    <img class="chart" src="./images/ols/data-frame-ols.png"/>
 </p>
 
-#### A More Elaborate Example
+#### UK House Price Trends
 
-It is possible to access all UK residential real-estate transaction records from 1995 through to current day via the [UK Government Open Data](https://data.gov.uk/) 
-initiative. The data is presented in CSV format, and contains numerous [columns](https://www.gov.uk/guidance/about-the-price-paid-data), 
-including such information as the transaction date, price paid, fully qualified address (including postal code), property type, lease type 
-(Freehold vs Leasehold) and so on.
+It is possible to access all UK residential [real-estate transaction records](https://data.gov.uk/dataset/land-registry-monthly-price-paid-data)
+from 1995 through to current day via the [UK Government Open Data](https://data.gov.uk/) initiative. The data is presented in CSV 
+format, and contains numerous [columns](https://www.gov.uk/guidance/about-the-price-paid-data), including such information as the 
+transaction date, price paid, fully qualified address (including postal code), property type, lease type and so on.
 
-In the example below, we use this data in order to compute the median nominal price (not inflation adjusted) of an **apartment** for 
-each year between 1995 through 2014 for a subset of the largest cities in the UK. There are about 20 million records in the unfiltered 
-dataset between 1993 and 2014, and while it takes a fairly long time to load and parse (approximately 3.5GB of data), Morpheus executes 
-the analytical portion of the code in about 5 seconds (not including load time) on a standard Apple Macbook Pro purchased in late 2013. 
-Total execution time on this laptop is around **30 seconds** with parallel processing (see call to `parallel()` below), and about 
-**52 seconds** with sequential processing. The full code for this example is as follows.
+Let us begin by writing a function to load these CSV files from Amazon S3 buckets, and since they are stored one file per year,
+we provide a parameterized function accordingly. Given the requirements of our analysis, there is no need to load all the columns in the 
+file, so below we only choose to read columns at index 1, 2, 4, and 11. In addition, since the files do not include a header, we 
+re-name columns to something more meaningful to make subsequent access a little clearer.
 
 <?prettify?>
 ```java
-String resource = "/Users/witdxav/Dropbox/data/uk-house-prices/uk-house-prices-%s.csv";
-
-//Create a data frame to capture the median prices of Apartments in the UK'a largest cities
-DataFrame<Year,String> results = DataFrame.ofDoubles(
-    Range.of(1995, 2015).map(Year::of),
-    Array.of("LONDON", "BIRMINGHAM", "SHEFFIELD", "LEEDS", "LIVERPOOL", "MANCHESTER")
-);
-
-//Process yearly data in parallel to leverage all CPU cores
-results.rows().keys().parallel().forEach(year -> {
-    System.out.printf("Loading UK house prices for %s...\n", year);
-    DataFrame.read().csv(options -> {
+/**
+ * Loads UK house price from the Land Registry stored in an Amazon S3 bucket
+ * Note the data does not have a header, so columns will be named Column-0, Column-1 etc...
+ * @param year      the year for which to load prices
+ * @return          the resulting DataFrame, with some columns renamed
+ */
+private DataFrame<Integer,String> loadHousePrices(Year year) {
+    String resource = "http://prod.publicdata.landregistry.gov.uk.s3-website-eu-west-1.amazonaws.com/pp-%s.csv";
+    return DataFrame.read().csv(options -> {
         options.setResource(String.format(resource, year.getValue()));
         options.setHeader(false);
         options.setCharset(StandardCharsets.UTF_8);
@@ -195,7 +187,29 @@ results.rows().keys().parallel().forEach(year -> {
                 default:    return colName;
             }
         });
-    }).rows().select(row -> {
+    });
+}
+```
+
+Below we use this data in order to compute the median nominal price (not inflation adjusted) of an **apartment** for each year between 
+1995 through 2014 for a subset of the largest cities in the UK. There are about 20 million records in the unfiltered dataset between 
+1993 and 2014, and while it takes a fairly long time to load and parse (approximately 3.5GB of data), Morpheus executes the analytical 
+portion of the code in about 5 seconds (not including load time) on a standard Apple Macbook Pro purchased in late 2013. Note how we use 
+parallel processing to load and process the data by calling `results.rows().keys().parallel()`. 
+
+<?prettify?>
+```java
+//Create a data frame to capture the median prices of Apartments in the UK'a largest cities
+DataFrame<Year,String> results = DataFrame.ofDoubles(
+    Range.of(1995, 2015).map(Year::of),
+    Array.of("LONDON", "BIRMINGHAM", "SHEFFIELD", "LEEDS", "LIVERPOOL", "MANCHESTER")
+);
+
+//Process yearly data in parallel to leverage all CPU cores
+results.rows().keys().parallel().forEach(year -> {
+    System.out.printf("Loading UK house prices for %s...\n", year);
+    DataFrame<Integer,String> prices = loadHousePrices(year);
+    prices.rows().select(row -> {
         //Filter rows to include only apartments in the relevant cities
         final String propType = row.getValue("PropertyType");
         final String city = row.getValue("City");
@@ -220,25 +234,28 @@ final DataFrame<LocalDate,String> plotFrame = results.mapToDoubles(v -> {
 });
 
 //Create a plot, and display it
-Chart.of(plotFrame, chart -> {
+Chart.create().withLinePlot(plotFrame, chart -> {
     chart.title().withText("Median Nominal House Price Changes");
     chart.title().withFont(new Font("Arial", Font.BOLD, 14));
     chart.subtitle().withText("Date Range: 1995 - 2014");
-    chart.axes().domain().label().withText("Year");
-    chart.axes().range(0).label().withText("Percent Change from 1995");
-    chart.axes().range(0).format().withPattern("0.##'%';-0.##'%'");
-    chart.legend().on();
+    chart.plot().axes().domain().label().withText("Year");
+    chart.plot().axes().range(0).label().withText("Percent Change from 1995");
+    chart.plot().axes().range(0).format().withPattern("0.##'%';-0.##'%'");
+    chart.plot().style("LONDON").withColor(Color.BLACK);
+    chart.legend().on().bottom();
     chart.show();
 });
 ```
-The percent change in nominal median prices for **apartments** in the subset of chosen cities is shown in the plot below. It shows that London 
-did not suffer any nominal house price decline as a result of the Global Financial Crisis (GFC), however not all cities in the UK proved as 
-resilient. What is slightly surprising is that some of the less affluent northern cities saw a higher rate of appreciation in the 2003 to 2006 
-period compared to London. One thing to note is that while London did not see any nominal price reduction, there was certainly a fairly severe 
-correction in terms of EUR and USD since Pound Sterling depreciated heavily against these currencies during the GFC.
+
+The percent change in nominal median prices for **apartments** in the subset of chosen cities is shown in the plot below. It 
+shows that London did not suffer any nominal house price decline as a result of the Global Financial Crisis (GFC), however not 
+all cities in the UK proved as resilient. What is slightly surprising is that some of the less affluent northern cities saw a 
+higher rate of appreciation in the 2003 to 2006 period compared to London. One thing to note is that while London did not see 
+any nominal price reduction, there was certainly a fairly severe correction in terms of EUR and USD since Pound Sterling 
+depreciated heavily against these currencies during the GFC.
 
 <p align="center">
-    <img src="images/uk-house-prices.png"/>
+    <img class="chart" src="./images/uk-house-prices.png"/>
 </p>
 
 ### Maven Artifacts

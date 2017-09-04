@@ -10,13 +10,11 @@ extra_css:
   - ./css/morpheus.css
   - https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/styles/default.min.css
 
-
 extra_javascript:
   - https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js
   - https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/highlight.min.js
   - https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML
   - http://www.zavtech.com/morpheus/docs/javascript/analytics.js
-
 
 pages:
   - Overview: index.md
@@ -43,8 +41,11 @@ pages:
     - Linear Algebra: analysis/linearalgebra.md
     - Time Series Analysis: analysis/timeseries.md
   - Visualization:
-      - Charts: viz/charts.md
-      - Tables: viz/tables.md
+      - Charts:
+        - Overview: viz/charts/overview.md
+        - Gallery (Google): viz/charts/gallery1.md
+        - Gallery (JFree): viz/charts/gallery2.md
+      - Tables: viz/tables/overview.md
   - Data Sources:
     - Quandl: providers/quandl.md
     - Google Finance: providers/google.md

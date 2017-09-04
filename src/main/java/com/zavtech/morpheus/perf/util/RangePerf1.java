@@ -68,12 +68,11 @@ public class RangePerf1 {
 
         //Plot initialization times
         String title = "DataFrame Create Times, 5 million rows by 10 columns of doubles (Sample " + sample + ")";
-        Chart.of(times, chart -> {
-            chart.plot(0).withBars(0d);
+        Chart.create().withBarPlot(times, false, chart -> {
             chart.title().withText(title);
             chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
-            chart.axes().domain().label().withText("Timing Statistic");
-            chart.axes().range(0).label().withText("Time (Milliseconds)");
+            chart.plot().axes().domain().label().withText("Timing Statistic");
+            chart.plot().axes().range(0).label().withText("Time (Milliseconds)");
             chart.legend().on().bottom();
             chart.show();
         });

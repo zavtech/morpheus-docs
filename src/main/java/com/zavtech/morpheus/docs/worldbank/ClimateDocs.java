@@ -57,11 +57,10 @@ public class ClimateDocs {
 
         frame.out().print();
 
-        Chart.of(frame.cols().mapKeys(col -> labelMap.get(col.key())), chart -> {
-            chart.plot(0).withStackedBars(0d);
-            chart.data().at(0).withDomainInterval(date -> date.plusYears(1));
-            chart.axes().domain().label().withText("Year");
-            chart.axes().range(0).label().withText("Metric tons per capita");
+        Chart.create().withBarPlot(frame.cols().mapKeys(col -> labelMap.get(col.key())), true, chart -> {
+            chart.plot().data().at(0).withLowerDomainInterval(date -> date.plusYears(1));
+            chart.plot().axes().domain().label().withText("Year");
+            chart.plot().axes().range(0).label().withText("Metric tons per capita");
             chart.title().withText("CO2 emissions (metric tons per capita)");
             chart.subtitle().withText("Source: World Bank, Indicator: EN.ATM.CO2E.PC");
             chart.legend().on().bottom();
@@ -97,11 +96,10 @@ public class ClimateDocs {
 
         frame.out().print();
 
-        Chart.of(frame.cols().mapKeys(col -> labelMap.get(col.key())), chart -> {
-            chart.plot(0).withStackedBars(0d);
-            chart.data().at(0).withDomainInterval(date -> date.plusYears(1));
-            chart.axes().domain().label().withText("Year");
-            chart.axes().range(0).label().withText("GDP per capita (current US$)");
+        Chart.create().withBarPlot(frame.cols().mapKeys(col -> labelMap.get(col.key())), true, chart -> {
+            chart.plot().data().at(0).withLowerDomainInterval(date -> date.plusYears(1));
+            chart.plot().axes().domain().label().withText("Year");
+            chart.plot().axes().range(0).label().withText("GDP per capita (current US$)");
             chart.title().withText("GDP per capita (current US$)");
             chart.subtitle().withText("Source: World Bank, Indicator: NY.GDP.PCAP.CD");
             chart.legend().on().bottom();

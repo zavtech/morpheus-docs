@@ -55,64 +55,21 @@ public class OLSDocs1 {
         final String y = "Horsepower";
         final String x = "EngineSize";
         DataFrame<Integer,String> xy = frame.cols().select(y, x);
-        Chart.of(xy, x, Double.class, chart -> {
-            chart.plot(0).withPoints();
-            chart.style(y).withColor(Color.RED);
-            chart.style(y).withPointsVisible(true).withPointShape(ChartShape.DIAMOND);
+        Chart.create().withScatterPlot(xy, false, x, chart -> {
             chart.title().withText(y + " vs " + x);
-            chart.axes().domain().label().withText(x);
-            chart.axes().domain().format().withPattern("0.00;-0.00");
-            chart.axes().range(0).label().withText(y);
-            chart.axes().range(0).format().withPattern("0;-0");
-            chart.writerPng(new File("../morpheus-docs/docs/images/ols/data-frame-ols1.png"), 845, 450);
+            chart.plot().style(y).withColor(Color.RED);
+            chart.plot().style(y).withPointsVisible(true).withPointShape(ChartShape.DIAMOND);
+            chart.plot().axes().domain().label().withText(x);
+            chart.plot().axes().domain().format().withPattern("0.00;-0.00");
+            chart.plot().axes().range(0).label().withText(y);
+            chart.plot().axes().range(0).format().withPattern("0;-0");
+            chart.writerPng(new File("./docs/images/ols/data-frame-ols1.png"), 845, 450, true);
             chart.show(845, 450);
         });
 
         Thread.currentThread().join();
     }
 
-
-    @Test()
-    public void regressPlot() throws Exception {
-        DataFrame<Integer,String> frame = loadCarDataset();
-        final String regressand = "Horsepower";
-        final String regressor = "EngineSize";
-        DataFrame<Integer,String> xy = frame.cols().select(regressand, regressor);
-        Chart.of(xy, regressor, Double.class, chart -> {
-            chart.plot(0).withPoints();
-            chart.style(regressand).withColor(Color.RED).withPointsVisible(true).withPointShape(ChartShape.DIAMOND);
-            chart.trendLine().add(regressand, regressand + " (trend)").withColor(Color.BLACK);
-            chart.title().withText(regressand + " regressed on " + regressor);
-            chart.subtitle().withText("Single Variable Linear Regression");
-            chart.title().withFont(new Font("Verdana", Font.BOLD, 16));
-            chart.axes().domain().label().withText(regressor);
-            chart.axes().domain().format().withPattern("0.00;-0.00");
-            chart.axes().range(0).label().withText(regressand);
-            chart.axes().range(0).format().withPattern("0;-0");
-            chart.writerPng(new File("../morpheus-docs/docs/images/ols/data-frame-ols2.png"), 845, 450);
-            chart.show();
-        });
-
-        Thread.currentThread().join();
-    }
-
-
-    @Test()
-    public void ols1() {
-        DataFrame<Integer,String> frame = loadCarDataset();
-        final String regressand = "Horsepower";
-        final String regressor = "EngineSize";
-        frame.regress().ols(regressand, regressor, true, model -> {
-            System.out.println(model);
-            return Optional.empty();
-        });
-
-        frame.regress().ols(regressand, regressor, false, model -> {
-            System.out.println(model);
-            return Optional.empty();
-        });
-
-    }
 
 
     @Test()
@@ -146,6 +103,32 @@ public class OLSDocs1 {
     }
 
 
+
+    @Test()
+    public void regressPlot() throws Exception {
+        DataFrame<Integer,String> frame = loadCarDataset();
+        final String regressand = "Horsepower";
+        final String regressor = "EngineSize";
+        DataFrame<Integer,String> xy = frame.cols().select(regressand, regressor);
+        Chart.create().withScatterPlot(xy, false, regressor, chart -> {
+            chart.title().withFont(new Font("Verdana", Font.BOLD, 16));
+            chart.title().withText(regressand + " regressed on " + regressor);
+            chart.subtitle().withText("Single Variable Linear Regression");
+            chart.plot().style(regressand).withColor(Color.RED);
+            chart.plot().trend(regressand).withColor(Color.BLACK);
+            chart.plot().axes().domain().label().withText(regressor);
+            chart.plot().axes().domain().format().withPattern("0.00;-0.00");
+            chart.plot().axes().range(0).label().withText(regressand);
+            chart.plot().axes().range(0).format().withPattern("0;-0");
+            chart.writerPng(new File("./docs/images/ols/data-frame-ols2.png"), 845, 450, true);
+            chart.show();
+        });
+
+        Thread.currentThread().join();
+    }
+
+
+
     @Test()
     public void ols3() throws Exception {
         DataFrame<Integer,String> frame = loadCarDataset();
@@ -170,40 +153,6 @@ public class OLSDocs1 {
         });
     }
 
-
-    @Test()
-    public void frontExample() throws Exception {
-
-        //Load the data
-        DataFrame<Integer,String> data = DataFrame.read().csv(options -> {
-            options.setResource("http://zavtech.com/data/samples/cars93.csv");
-            options.setExcludeColumnIndexes(0);
-        });
-
-        //Run OLS regression
-        String regressand = "Horsepower";
-        String regressor = "EngineSize";
-        data.regress().ols(regressand, regressor, true, model -> {
-            System.out.println(model);
-            DataFrame<Integer,String> xy = data.cols().select(regressand, regressor);
-            Chart.of(xy, regressor, Double.class, chart -> {
-                chart.plot(0).withPoints();
-                chart.style(regressand).withColor(Color.RED).withPointsVisible(true);
-                chart.trendLine().add(regressand, regressand + " (trend)").withColor(Color.BLACK);
-                chart.title().withText(regressand + " regressed on " + regressor);
-                chart.subtitle().withText("Single Variable Linear Regression");
-                chart.axes().domain().label().withText(regressor);
-                chart.axes().domain().format().withPattern("0.00;-0.00");
-                chart.axes().range(0).label().withText(regressand);
-                chart.axes().range(0).format().withPattern("0;-0");
-                chart.writerPng(new File("../morpheus-docs/docs/images/ols/data-frame-ols.png"), 845, 450);
-                chart.show();
-            });
-            return Optional.empty();
-        });
-
-        Thread.currentThread().join();
-    }
 
 
 

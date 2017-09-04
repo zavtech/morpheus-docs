@@ -52,14 +52,13 @@ public class HistogramDocs {
             });
         });
 
-        Chart.of(hist, chart -> {
-            chart.plot(0).withBars(0d);
-            chart.style("Count").withColor(Color.RED);
-            chart.data().at(0).withDomainInterval(v -> v + step);
+        Chart.create().withBarPlot(hist, false, chart -> {
             chart.title().withText("Histogram");
             chart.title().withFont(new Font("Arial", Font.PLAIN, 16));
-            chart.axes().range(0).label().withText("Frequency");
-            chart.axes().domain().label().withText("Values");
+            chart.plot().style("Count").withColor(Color.RED);
+            chart.plot().data().at(0).withLowerDomainInterval(v -> v + step);
+            chart.plot().axes().range(0).label().withText("Frequency");
+            chart.plot().axes().domain().label().withText("Values");
             chart.show();
         });
 
@@ -72,7 +71,7 @@ public class HistogramDocs {
         final RealDistribution gaussian = new NormalDistribution();
         final Array<Integer> rowKeys = Range.of(0, 100000).toArray();
         final DataFrame<Integer,String> frame = DataFrame.ofDoubles(rowKeys, Array.of("Normal"), v -> gaussian.sample());
-        Chart.hist(frame, "Normal", 100, chart -> {
+        Chart.create().withHistPlot(frame, 100, "Normal", chart -> {
             chart.title().withText("Gaussian Distribution, N(0,1)");
             chart.show();
         });

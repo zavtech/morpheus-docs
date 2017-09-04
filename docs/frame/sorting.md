@@ -357,7 +357,7 @@ see a very big difference between the *min* and *max* sort times if that was the
 Range<Integer> rowCounts = Range.of(1, 6).map(i -> i * 1000000);
 
 //Time DataFrame sort operations on frame of random doubles with row counts ranging from 1M to 6M
-DataFrame<String,String> results = DataFrame.union(rowCounts.map(rowCount -> {
+DataFrame<String,String> results = DataFrame.combineFirst(rowCounts.map(rowCount -> {
     Range<Integer> rowKeys = Range.of(0, rowCount.intValue());
     Range<String> colKeys = Range.of(0, 5).map(i -> "C" + i);
     //Create frame initialized with random double values
@@ -371,10 +371,9 @@ DataFrame<String,String> results = DataFrame.union(rowCounts.map(rowCount -> {
 }));
 
 //Plot the results of the combined DataFrame with timings
-Chart.of(results, chart -> {
-    chart.plot(0).withBars(0d);
-    chart.axes().domain().label().withText("Timing Statistic");
-    chart.axes().range(0).label().withText("Time In Milliseconds");
+Chart.create().withBarPlot(results, false, chart -> {
+    chart.plot().axes().domain().label().withText("Timing Statistic");
+    chart.plot().axes().range(0).label().withText("Time In Milliseconds");
     chart.title().withText("DataFrame Sorting Performance (Sequential)");
     chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
     chart.subtitle().withText("Row Sort with counts from 1M to 5M rows");
@@ -387,7 +386,10 @@ The results in the chart below show a fairly linear increase in sort times as we
 to 5 million rows. The dispersion in the 10 iterations as measured by the standard deviation is fairly low in all cases, 
 at least as a percentage of the time taken.
 
-![Plot](../images/frame/data-frame-row-sort-sequential.png)
+<p align="center">
+    <img class="chart" src="../../images/frame/data-frame-row-sort-sequential.png"/>
+</p>
+
 
 ##### Parallel Sorting
 
@@ -400,7 +402,7 @@ sort by ensuring that we call `DataFrame.rows().parallel().sort()`. The modified
 Range<Integer> rowCounts = Range.of(1, 6).map(i -> i * 1000000);
 
 //Time DataFrame sort operations on frame of random doubles with row counts ranging from 1M to 6M
-DataFrame<String,String> results = DataFrame.union(rowCounts.map(rowCount -> {
+DataFrame<String,String> results = DataFrame.combineFirst(rowCounts.map(rowCount -> {
     Range<Integer> rowKeys = Range.of(0, rowCount.intValue());
     Range<String> colKeys = Range.of(0, 5).map(i -> "C" + i);
     //Create frame initialized with random double values
@@ -414,15 +416,13 @@ DataFrame<String,String> results = DataFrame.union(rowCounts.map(rowCount -> {
 }));
 
 //Plot the results of the combined DataFrame with timings
-Chart.of(results, chart -> {
-    chart.plot(0).withBars(0d);
-    chart.axes().domain().label().withText("Timing Statistic");
-    chart.axes().range(0).label().withText("Time In Milliseconds");
+Chart.create().withBarPlot(results, false, chart -> {
+    chart.plot().axes().domain().label().withText("Timing Statistic");
+    chart.plot().axes().range(0).label().withText("Time In Milliseconds");
     chart.title().withText("DataFrame Sorting Performance (Parallel)");
     chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
     chart.subtitle().withText("Row Sort with counts from 1M to 5M rows");
     chart.legend().on().bottom();
-    chart.writerPng(new File("./docs/images/frame/data-frame-row-sort-parallel.png"), 845, 400);
     chart.show();
 });
 ```
@@ -433,7 +433,9 @@ dispersion in the results. For the largest frame with 5 million rows the *median
 cache sizes increase and ever more cores become available, we can only expect this spread to widen as Moore's 
 Law begins to plateau.
 
-![Plot](../images/frame/data-frame-row-sort-parallel.png)
+<p align="center">
+    <img class="chart" src="../../images/frame/data-frame-row-sort-parallel.png"/>
+</p>
 
 ##### Comparator Performance
 
@@ -452,7 +454,6 @@ follows:
 Range<Integer> rowKeys = Range.of(0, 1000000);
 Range<String> colKeys = Range.of(0, 5).map(i -> "C" + i);
 DataFrame<Integer,String> frame = DataFrame.ofDoubles(rowKeys, colKeys, v -> Math.random() * 100d);
-
 //Define comparator to sort rows by column C1, which is ordinal 1
 Comparator<DataFrameRow<Integer,String>> comparator = (row1, row2) -> {
     double v1 = row1.getDouble(1);
@@ -470,10 +471,9 @@ DataFrame<String,String> results = PerfStat.run(10, TimeUnit.MILLISECONDS, false
 });
 
 //Plot the results of the combined DataFrame with timings
-Chart.of(results, chart -> {
-    chart.plot(0).withBars(0d);
-    chart.axes().domain().label().withText("Timing Statistic");
-    chart.axes().range(0).label().withText("Time In Milliseconds");
+Chart.create().withBarPlot(results, false, chart -> {
+    chart.plot().axes().domain().label().withText("Timing Statistic");
+    chart.plot().axes().range(0).label().withText("Time In Milliseconds");
     chart.title().withText("DataFrame Sorting Performance With & Without Comparator");
     chart.subtitle().withText("1 Million rows of random double precision values");
     chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
@@ -489,7 +489,9 @@ to get to the data in question. An interesting outcome in the sequential versus 
 is that the parallel sort with the `Comparator` is still faster than the sequential sort without
 the `Comparator`. 
 
-![Plot](../images/frame/data-frame-row-sort-comparator.png)
+<p align="center">
+    <img class="chart" src="../../images/frame/data-frame-row-sort-comparator.png"/>
+</p>
 
 These performance benchmarks are obviously very controlled test cases, and real world performance is likely
 to differ for all kinds of reasons. In addition, at the time of writing the Morpheus Library is at version 1.0, 

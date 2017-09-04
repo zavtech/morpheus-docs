@@ -47,13 +47,12 @@ public class CsvParse {
 
         });
 
-        Chart.of(timingStats, chart -> {
-            chart.plot(0).withBars(0d);
+        Chart.create().withBarPlot(timingStats, false, chart -> {
             chart.title().withText("CSV Parsing Performance (Sequential vs Parallel)");
             chart.subtitle().withText("File Size: 40MB, 760,000 lines, 6 columns");
             chart.title().withFont(new Font("Verdana", Font.PLAIN, 16));
-            chart.axes().domain().label().withText("Statistic");
-            chart.axes().range(0).label().withText("Time in Milliseconds");
+            chart.plot().axes().domain().label().withText("Statistic");
+            chart.plot().axes().range(0).label().withText("Time in Milliseconds");
             chart.legend().on();
             chart.show();
         });

@@ -223,25 +223,24 @@ library to generate a scatter plot of the data, with **EngineSize** on the x-axi
 
 <?prettify?>
 ```java
-DataFrame<Integer,String> frame = loadCarDataset();
 final String y = "Horsepower";
 final String x = "EngineSize";
-DataFrame<Integer,String> xy = frame.cols().select(y, x);
-Chart.of(xy, x, Double.class, chart -> {
-    chart.plot(0).withPoints();
-    chart.style(y).withColor(Color.RED);
-    chart.style(y).withPointsVisible(true).withPointShape(ChartShape.DIAMOND);
+final DataFrame<Integer,String> frame = loadCarDataset();
+final DataFrame<Integer,String> xy = frame.cols().select(y, x);
+Chart.create().withScatterPlot(xy, false, x, chart -> {
     chart.title().withText(y + " vs " + x);
-    chart.axes().domain().label().withText(x);
-    chart.axes().domain().format().withPattern("0.00;-0.00");
-    chart.axes().range(0).label().withText(y);
-    chart.axes().range(0).format().withPattern("0;-0");
+    chart.plot().style(y).withColor(Color.RED);
+    chart.plot().style(y).withPointsVisible(true).withPointShape(ChartShape.DIAMOND);
+    chart.plot().axes().domain().label().withText(x);
+    chart.plot().axes().domain().format().withPattern("0.00;-0.00");
+    chart.plot().axes().range(0).label().withText(y);
+    chart.plot().axes().range(0).format().withPattern("0;-0");
     chart.show(845, 450);
 });
 ```
 
 <p align="center">
-    <img src="../../images/ols/data-frame-ols1.png"/>
+    <img class="chart" src="../../images/ols/data-frame-ols1.png"/>
 </p>
 
 The scatter plot certainly appears to suggest that there is a positive relationship between **EngineSize** and **Horsepower**. In addition, it seems somewhat 
@@ -293,9 +292,9 @@ interface, and provides all the relevant hooks to access the model inputs and ou
 
 <?prettify?>
 ```java
-DataFrame<Integer,String> frame = loadCarDataset();
 final String regressand = "Horsepower";
 final String regressor = "EngineSize";
+final DataFrame<Integer,String> frame = loadCarDataset();
 frame.regress().ols(regressand, regressor, true, model -> {
     assert (model.getRegressand().equals(regressand));
     assert (model.getRegressors().size() == 1);
@@ -323,27 +322,28 @@ frame.regress().ols(regressand, regressor, true, model -> {
 
 Finally, the chart below adds the OLS trendline to the initial scatter plot to get a better sense of how the solution fits the data. 
 
-<img src="../../images/ols/data-frame-ols2.png"/>
+<p align="center">
+    <img class="chart" src="../../images/ols/data-frame-ols2.png"/>
+</p>
 
 The code to generate this chart is as follows:
 
 <?prettify?>
 ```java
-DataFrame<Integer,String> frame = loadCarDataset();
 final String regressand = "Horsepower";
 final String regressor = "EngineSize";
-DataFrame<Integer,String> xy = frame.cols().select(regressand, regressor);
-Chart.of(xy, regressor, Double.class, chart -> {
-    chart.plot(0).withPoints();
-    chart.style(regressand).withColor(Color.RED).withPointsVisible(true).withPointShape(ChartShape.DIAMOND);
-    chart.trendLine().add(regressand, regressand + " (trend)").withColor(Color.BLACK);
+final DataFrame<Integer,String> frame = loadCarDataset();
+final DataFrame<Integer,String> xy = frame.cols().select(regressand, regressor);
+Chart.create().withScatterPlot(xy, false, regressor, chart -> {
+    chart.title().withFont(new Font("Verdana", Font.BOLD, 16));
     chart.title().withText(regressand + " regressed on " + regressor);
     chart.subtitle().withText("Single Variable Linear Regression");
-    chart.title().withFont(new Font("Verdana", Font.BOLD, 16));
-    chart.axes().domain().label().withText(regressor);
-    chart.axes().domain().format().withPattern("0.00;-0.00");
-    chart.axes().range(0).label().withText(regressand);
-    chart.axes().range(0).format().withPattern("0;-0");
+    chart.plot().style(regressand).withColor(Color.RED);
+    chart.plot().trend(regressand).withColor(Color.BLACK);
+    chart.plot().axes().domain().label().withText(regressor);
+    chart.plot().axes().domain().format().withPattern("0.00;-0.00");
+    chart.plot().axes().range(0).label().withText(regressand);
+    chart.plot().axes().range(0).format().withPattern("0;-0");
     chart.show();
 });
 ```
@@ -391,29 +391,35 @@ of samples. The code below plots 4 random samples of this population process wit
 final double beta = 1.45d;
 final double alpha = 4.15d;
 final double sigma = 20d;
-Stream<Chart> charts = IntStream.range(0, 4).mapToObj(i -> {
+Chart.show(2, IntStream.range(0, 4).mapToObj(i -> {
     DataFrame<Integer,String> frame = sample(alpha, beta, 0, 1, sigma, 100);
     String title = "Sample %s Dataset, Beta: %.2f Alpha: %.2f";
     String subtitle = "Parameter estimates, Beta^: %.3f, Alpha^: %.3f";
     DataFrameLeastSquares<Integer,String> ols = frame.regress().ols("Y", "X", true, Optional::of).get();
     double betaHat = ols.getBetaValue("X", DataFrameLeastSquares.Field.PARAMETER);
     double alphaHat = ols.getInterceptValue(DataFrameLeastSquares.Field.PARAMETER);
-    return Chart.of(frame, "X", Double.class, chart -> {
-        chart.plot(0).withPoints();
+    return Chart.create().withScatterPlot(frame, false, "X", chart -> {
         chart.title().withText(String.format(title, i, beta, alpha));
         chart.title().withFont(new Font("Arial", Font.BOLD, 14));
         chart.subtitle().withText(String.format(subtitle, betaHat, alphaHat));
-        chart.style("Y").withColor(Color.RED).withPointsVisible(true);
-        chart.trendLine().add("Y", "OLS");
+        chart.plot().style("Y").withColor(Color.RED).withPointsVisible(true);
+        chart.plot().trend("Y");
     });
-});
-Chart[] chartArray = charts.toArray(Chart[]::new);
-ChartEngine.getDefaultEngine().show(4, 4, chartArray);
+}));
 ```
 
-<p align="center">
-    <img src="../../images/ols/ols-samples.png"/>
-</p>
+<div style="float:left;width:50%;">
+    <img class="chart" src="../../images/ols/ols-sample-0.png"/>
+</div>
+<div style="float:left;width:50%;">
+    <img class="chart" src="../../images/ols/ols-sample-1.png"/>
+</div>
+<div style="float:left;width:50%;">
+    <img class="chart" src="../../images/ols/ols-sample-2.png"/>
+</div>
+<div style="float:left;width:50%;">
+    <img class="chart" src="../../images/ols/ols-sample-3.png"/>
+</div>
 
 Given this data generating function, we can produce many samples from a known population process and then proceed to run OLS regressions on 
 these samples. For each run we capture the coefficient estimates, and then plot a histogram of all the recorded estimates to confirm that the 
@@ -433,7 +439,7 @@ final DataFrame<Integer,String> results = DataFrame.ofDoubles(rows, columns);
 
 //Run 100K regressions in parallel
 results.rows().parallel().forEach(row -> {
-    final DataFrame<Integer,String> frame = dataset(actAlpha, actBeta, 0, 1, sigma, n);
+    final DataFrame<Integer,String> frame = sample(actAlpha, actBeta, 0, 1, sigma, n);
     frame.regress().ols("Y", "X", true, model -> {
         final double alpha = model.getInterceptValue(DataFrameLeastSquares.Field.PARAMETER);
         final double beta = model.getBetaValue("X", DataFrameLeastSquares.Field.PARAMETER);
@@ -444,7 +450,7 @@ results.rows().parallel().forEach(row -> {
 });
 
 Array.of("Beta", "Alpha").forEach(coefficient -> {
-    Chart.hist(results, coefficient, 250, chart -> {
+    Chart.create().withHistPlot(results, 250, coefficient, chart -> {
         final double mean = results.colAt(coefficient).stats().mean();
         final double stdDev = results.colAt(coefficient).stats().stdDev();
         final double actual = coefficient.equals("Beta") ? actBeta : actAlpha;
@@ -458,8 +464,8 @@ Array.of("Beta", "Alpha").forEach(coefficient -> {
 ```
 
 <p align="center">
-    <img src="../../images/ols/ols-Alpha-unbiased.png"/>
-    <img src="../../images/ols/ols-Beta-unbiased.png"/>
+    <img class="chart" src="../../images/ols/ols-Alpha-unbiased.png"/>
+    <img class="chart" src="../../images/ols/ols-Beta-unbiased.png"/>
 </p>
 
 The alpha and beta histogram plots above clearly show that the distribution of the 100000 estimates of each coefficient are centered on the 
@@ -495,7 +501,7 @@ sampleSizes.forEach(n -> {
     final String betaKey = String.format("Beta(n=%s)", n);
     final String alphaKey = String.format("Alpha(n=%s)", n);
     results.rows().parallel().forEach(row -> {
-        final DataFrame<Integer,String> frame = dataset(actAlpha, actBeta, 0, 1, sigma, n);
+        final DataFrame<Integer,String> frame = sample(actAlpha, actBeta, 0, 1, sigma, n);
         frame.regress().ols("Y", "X", true, model -> {
             final double alpha = model.getInterceptValue(DataFrameLeastSquares.Field.PARAMETER);
             final double beta = model.getBetaValue("X", DataFrameLeastSquares.Field.PARAMETER);
@@ -508,8 +514,8 @@ sampleSizes.forEach(n -> {
 
 Array.of("Beta", "Alpha").forEach(coeff -> {
     final DataFrame<Integer,String> coeffResults = results.cols().select(col -> col.key().startsWith(coeff));
-    Chart.hist(coeffResults, 250, chart -> {
-        chart.axes().domain().label().withText("Coefficient Estimate");
+    Chart.create().withHistPlot(coeffResults, 250, true, chart -> {
+        chart.plot().axes().domain().label().withText("Coefficient Estimate");
         chart.title().withText(coeff + " Histograms of " + regressionCount + " Regressions");
         chart.subtitle().withText(coeff + " Variance decreases as sample size increases");
         chart.legend().on().bottom();
@@ -519,18 +525,20 @@ Array.of("Beta", "Alpha").forEach(coeff -> {
 ```
 
 <p align="center">
-    <img src="../../images/ols/ols-Beta-consistency.png"/>
-    <img src="../../images/ols/ols-Alpha-consistency.png"/>
+    <img class="chart" src="../../images/ols/ols-Beta-consistency.png"/>
+    <img class="chart" src="../../images/ols/ols-Alpha-consistency.png"/>
 </p>
-
 
 It is clear from the above plots that as sample size increases, the variance in the estimates decreases, which is what we expect if the
 estimator is consistent. The bar charts below summarize the change in variance for each of the coefficients, and is follow by the code
 that generates these plots.
 
-<p align="center">
-    <img src="../../images/ols/ols-consistency.png"/>
-</p>
+<div style="float:left;width:50%;">
+    <img class="chart" src="../../images/ols/ols-beta-variance.png"/>
+</div>
+<div style="float:left;width:50%;">
+    <img class="chart" src="../../images/ols/ols-alpha-variance.png"/>
+</div>
 
 <?prettify?>
 ```java
@@ -544,23 +552,21 @@ Array<DataFrame<String,StatType>> variances = Array.of("Beta", "Alpha").map(valu
         final String name = column.key();
         if (matcher.reset(name).matches()) return matcher.group(1);
         throw new IllegalArgumentException("Unexpected column name: " + column.key());
-    }).cols().stats().variance().transpose();
+    }).cols().stats().variance();
 });
 
-ChartEngine.getDefaultEngine().show(1, 2,
-    Chart.of(variances.getValue(0), chart -> {
-        chart.plot(0).withBars(0d);
-        chart.style(StatType.VARIANCE).withColor(new Color(255, 100, 100));
+Chart.show(2, Collect.asList(
+    Chart.create().withBarPlot(variances.getValue(0), false, chart -> {
         chart.title().withText("Beta variance with sample size");
-        chart.axes().range(0).label().withText("Beta Variance");
-        chart.axes().domain().label().withText("Sample Size");
+        chart.plot().style(StatType.VARIANCE).withColor(new Color(255, 100, 100));
+        chart.plot().axes().range(0).label().withText("Beta Variance");
+        chart.plot().axes().domain().label().withText("Sample Size");
     }),
-    Chart.of(variances.getValue(1), chart -> {
-        chart.plot(0).withBars(0d);
-        chart.style(StatType.VARIANCE).withColor(new Color(102, 204, 255));
+    Chart.create().withBarPlot(variances.getValue(1), false, chart -> {
         chart.title().withText("Alpha variance with sample size");
-        chart.axes().range(0).label().withText("Alpha Variance");
-        chart.axes().domain().label().withText("Sample Size");
+        chart.plot().style(StatType.VARIANCE).withColor(new Color(102, 204, 255));
+        chart.plot().axes().range(0).label().withText("Alpha Variance");
+        chart.plot().axes().domain().label().withText("Sample Size");
     })
-);
+));
 ```

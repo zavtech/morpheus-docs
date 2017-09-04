@@ -75,12 +75,11 @@ public class RangePerf2 {
         });
 
 
-        Chart.of(results, chart -> {
-            chart.plot(0).withBars(0d);
+        Chart.create().withBarPlot(results, false, chart -> {
             chart.title().withText("Array construction times from Range");
             chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
-            chart.axes().domain().label().withText("Timing Statistic");
-            chart.axes().range(0).label().withText("Time (Milliseconds)");
+            chart.plot().axes().domain().label().withText("Timing Statistic");
+            chart.plot().axes().range(0).label().withText("Time (Milliseconds)");
             chart.legend().on().right();
             chart.show();
         });

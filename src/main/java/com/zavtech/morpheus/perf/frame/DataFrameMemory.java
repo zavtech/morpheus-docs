@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.zavtech.morpheus.util.MemoryEstimator;
 import com.zavtech.morpheus.viz.chart.Chart;
 
 import com.zavtech.morpheus.array.Array;
@@ -24,6 +25,7 @@ public class DataFrameMemory {
                 500000, 1000000, 2500000, 5000000, 7500000, 10000000, 12500000, 15000000, 20000000
         );
 
+        final MemoryEstimator memoryEstimator = new MemoryEstimator.DefaultMemoryEstimator();
         final List<String> rowKeys = counts.stream().values().map(Object::toString).collect(Collectors.toList());
         final DataFrame<String,String> results = DataFrame.ofDoubles(rowKeys, groups);
 
@@ -31,20 +33,16 @@ public class DataFrameMemory {
             final String key = String.valueOf(v.getInt());
             final Range<Integer> range = Range.of(0, v.getInt());
             final DataFrame<Integer,String> frame = DataFrame.ofDoubles(range, colKeys);
-            /*
-            final long bytes = memoryMeter.measureDeep(frame);
+            final long bytes = memoryEstimator.getObjectSize(frame);
             results.data().setDouble(key, "Integer", bytes / Math.pow(1024, 2));
-            */
         });
 
         counts.forEachValue(v -> {
             final String key = String.valueOf(v.getInt());
             final Range<Long> range = Range.of(0L, (long)v.getInt());
             final DataFrame<Long,String> frame = DataFrame.ofDoubles(range, colKeys);
-            /*
-            final long bytes = memoryMeter.measureDeep(frame);
+            final long bytes = memoryEstimator.getObjectSize(frame);
             results.data().setDouble(key, "Long", bytes / Math.pow(1024, 2));
-            */
         });
 
         counts.forEachValue(v -> {
@@ -52,22 +50,24 @@ public class DataFrameMemory {
             final LocalDateTime start = LocalDateTime.now();
             final Range<LocalDateTime> range = Range.of(start, start.plusSeconds(v.getInt()), Duration.ofSeconds(1));
             final DataFrame<LocalDateTime,String> frame = DataFrame.ofDoubles(range, colKeys);
-            /*
-            final long bytes = memoryMeter.measureDeep(frame);
+            final long bytes = memoryEstimator.getObjectSize(frame);
             results.data().setDouble(key, "LocalDateTime", bytes / Math.pow(1024, 2));
-            */
         });
 
-        Chart.of(results, chart -> {
-            chart.plot(0).withBars(0d);
+        Chart.create().withBarPlot(results, false, chart -> {
             chart.title().withText("DataFrame Memory Usage With Increasing Row Count (10 columns of doubles)");
             chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
-            chart.axes().domain().label().withText("Row Count");
-            chart.axes().range(0).label().withText("Memory Usage (MB)");
+            chart.plot().axes().domain().label().withText("Row Count");
+            chart.plot().axes().range(0).label().withText("Memory Usage (MB)");
             chart.legend().on().bottom();
-            chart.writerPng(new File("./morpheus-docs/docs/images/data-frame-memory.png"), 845, 400);
+            chart.writerPng(new File("./docs/images/frame/data-frame-memory.png"), 845, 400, true);
             chart.show();
         });
+
+    }
+
+
+    public void gcTimes() {
 
     }
 

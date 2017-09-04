@@ -35,14 +35,13 @@ public class DataFrameRowIteration {
         });
 
         //Plot timing statistics as a bar chart
-        Chart.of(timing, chart -> {
-            chart.plot(0).withBars(0d);
+        Chart.create().withBarPlot(timing, false, chart -> {
             chart.title().withText("Time to Compute Arithmetic Mean of 50 Million rows (Sample 10 times)");
             chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
-            chart.axes().domain().label().withText("Timing Statistic");
-            chart.axes().range(0).label().withText("Total Time in Milliseconds");
+            chart.plot().axes().domain().label().withText("Timing Statistic");
+            chart.plot().axes().range(0).label().withText("Total Time in Milliseconds");
             chart.legend().on();
-            chart.writerPng(new File("./morpheus-docs/docs/images/data-frame-row-iteration.png"), 845, 400);
+            chart.writerPng(new File("./docs/images/frame/data-frame-row-iteration.png"), 845, 400, true);
             chart.show();
         });
     }

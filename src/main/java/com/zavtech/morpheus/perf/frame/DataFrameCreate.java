@@ -12,6 +12,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.testng.annotations.Test;
+
 import com.zavtech.morpheus.viz.chart.Chart;
 
 import com.zavtech.morpheus.array.Array;
@@ -77,16 +79,76 @@ public class DataFrameCreate {
         });
 
         String initTitle = "DataFrame Create Times, 1-5 Million rows x 10 columns of Doubles (Sample " + sample + ")";
-        Chart.of(results, chart -> {
-            chart.plot(0).withBars(0d);
+        Chart.create().withBarPlot(results, false, chart -> {
             chart.title().withText(initTitle);
             chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
-            chart.axes().domain().label().withText("Row Count");
-            chart.axes().range(0).label().withText("Time (Milliseconds)");
+            chart.plot().axes().domain().label().withText("Row Count");
+            chart.plot().axes().range(0).label().withText("Time (Milliseconds)");
             chart.legend().on().bottom();
-            chart.writerPng(new File("./morpheus-docs/docs/images/data-frame-init-times.png"), 845, 400);
+            chart.writerPng(new File("./docs/images/frame/data-frame-init-times.png"), 860, 400, true);
             chart.show();
         });
+    }
+
+
+    @Test()
+    public void gcTimes() throws Exception {
+
+        final int sample = 5;
+        final int rowCount = 5000000;
+        final Array<String> colKeys = Array.of("A", "B", "C", "D", "E", "F", "G", "H", "I", "J");
+
+        PerfStat stat1 = PerfStat.run("DataFrame<Integer,?>", sample, TimeUnit.MILLISECONDS, () -> {
+            final Range<Integer> rowIndexes = Range.of(0, rowCount);
+            return DataFrame.ofDoubles(rowIndexes, colKeys);
+        });
+
+        PerfStat stat2 = PerfStat.run("DataFrame<Date,?>", sample, TimeUnit.MILLISECONDS, () -> {
+            final long now = System.currentTimeMillis();
+            final Range<Date> rowKeys = Range.of(0, rowCount).map(i -> new Date(now + (i * 1000)));
+            return DataFrame.ofDoubles(rowKeys, colKeys);
+        });
+
+        PerfStat stat3 = PerfStat.run("DataFrame<Instant,?>", sample, TimeUnit.MILLISECONDS, () -> {
+            final Instant now = Instant.now();
+            final Range<Instant> rowKeys = Range.of(0, rowCount).map(now::plusSeconds);
+            return DataFrame.ofDoubles(rowKeys, colKeys);
+        });
+
+        PerfStat stat4 = PerfStat.run("DataFrame<LocalDateTime,?>", sample, TimeUnit.MILLISECONDS, () -> {
+            final LocalDateTime start = LocalDateTime.now().minusYears(10);
+            final Range<LocalDateTime> rowKeys = Range.of(0, rowCount).map(start::plusSeconds);
+            return DataFrame.ofDoubles(rowKeys, colKeys);
+        });
+
+        PerfStat stat5 = PerfStat.run("DataFrame<ZonedDateTime,?>", sample, TimeUnit.MILLISECONDS, () -> {
+            final ZonedDateTime start = ZonedDateTime.now();
+            final Range<ZonedDateTime> rowKeys = Range.of(0, rowCount).map(start::plusSeconds);
+            return DataFrame.ofDoubles(rowKeys, colKeys);
+        });
+
+        final DataFrame<String,String> results = DataFrame.combineFirst(
+            stat1.getGcStats(),
+            stat2.getGcStats(),
+            stat3.getGcStats(),
+            stat4.getGcStats(),
+            stat5.getGcStats()
+        );
+
+        results.out().print();
+
+        String initTitle = "DataFrame GC Times, 5 Million rows x 10 columns of Doubles (Sample " + sample + ")";
+        Chart.create().withBarPlot(results, false, chart -> {
+            chart.title().withText(initTitle);
+            chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
+            chart.plot().axes().domain().label().withText("Timing Statistic");
+            chart.plot().axes().range(0).label().withText("Time (Milliseconds)");
+            chart.legend().on().bottom();
+            chart.writerPng(new File("./docs/images/frame/data-frame-gc-times.png"), 860, 400, true);
+            chart.show();
+        });
+
+        Thread.currentThread().join();
     }
 
 }

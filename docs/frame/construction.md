@@ -18,7 +18,7 @@ to hold double precision values. The code below illustrates various common const
 data types.
 
 <?prettify?>
-```
+```java
 import com.zavtech.morpheus.array.Array;
 import com.zavtech.morpheus.frame.DataFrame;
 import com.zavtech.morpheus.range.Range;
@@ -40,7 +40,7 @@ DataFrame<Year,Month> objects = DataFrame.ofValues(years, months);
 Factory methods are provided to easily create a frame with one column.
 
 <?prettify?>
-```
+```java
 //Create a frame with a single column initially
 DataFrame<Year,Month> booleans = DataFrame.ofBooleans(years, Month.JANUARY);
 DataFrame<Year,Month> integers = DataFrame.ofInts(years, Month.JANUARY);
@@ -53,7 +53,7 @@ DataFrame<Year,Month> objects = DataFrame.ofValues(years, Month.JANUARY);
 Factory methods are provided to easily create a frame with one row.
 
 <?prettify?>
-```
+```java
 //Create a frame with a single row initially
 DataFrame<Year,Month> booleans = DataFrame.ofBooleans(Year.of(2014), months);
 DataFrame<Year,Month> integers = DataFrame.ofInts(Year.of(2014), months);
@@ -70,7 +70,7 @@ In addition, the column values in this example are initialized with random value
 `applyXXX()` methods.
 
 <?prettify?>
-```
+```java
 //Create a frame with 5 columns each optimized for a different data type and randomly initialized values
 Random rand = new java.util.Random();
 DataFrame<Year,Month> randomFrame = DataFrame.of(years, Month.class, columns -> {
@@ -87,7 +87,7 @@ keys to the frame's row and column axis. Methods are provided to add keys indivi
 be specified.
 
 <?prettify?>
-```
+```java
 //Create an empty frame with initial capacity, then add rows and columns
 DataFrame<Year,Month> frame = DataFrame.empty(Year.class, Month.class);
 frame.rows().add(Year.of(1975));
@@ -109,7 +109,7 @@ illustrates various parsing examples, beginning with simple cases and progressin
 examples.
 
 <?prettify?>
-```
+```java
 //Parse file or classpath resource, with first row as header
 DataFrame<Integer,String> frame1 = DataFrame.readCsv("/temp/data.csv");
 
@@ -139,7 +139,7 @@ Let's consider a real-world example where we wish to parse a CSV file from Yahoo
 prices for the S&P 500 index. A sample of the file can be downloaded [here](http://chart.finance.yahoo.com/table.csv?s=SPY&a=0&b=1&c=2013&d=5&e=6&f=2014&g=d&ignore=.csv) and the first 10 rows in the file
 are shown below.
 
-<pre style="color:black;">
+<pre class="frame">
 Date,Open,High,Low,Close,Volume,Adj Close
 2014-06-06,194.869995,195.429993,194.779999,195.380005,78696000,185.713099
 2014-06-05,193.410004,194.649994,192.699997,194.449997,92103000,184.829105
@@ -159,7 +159,7 @@ to a `long`, and the rest of the columns are left to the default behaviour, whic
 all resolve to `double` type.
 
 <?prettify?>
-```
+```java
 DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 String url = "http://chart.finance.yahoo.com/table.csv?s=SPY&a=0&b=1&c=2013&d=5&e=6&f=2014&g=d&ignore=.csv";
 DataFrame<LocalDate,String> frame = DataFrame.readCsv(options -> {
@@ -195,11 +195,15 @@ The chart below shows some performance statistics comparing parallel versus sequ
 containing roughly 760,000 rows of CSV content.  While the absolute figures are very machine specific, the relative 
 difference does suggest that parallel loading can make a material improvement on a multi-core machine, which
 is pretty standard issue these days.
-![Plot](../images/morpheus-parse-csv-times.png)
+
+<p align="center">
+    <img class="chart" src="../../images/morpheus-parse-csv-times.png"/>
+</p>
+
 The code to produce this plot is as follows:
 
 <?prettify?>
-```
+```java
 import com.zavtech.morpheus.frame.DataFrame;
 import com.zavtech.morpheus.viz.chart.Chart;
 
@@ -209,24 +213,24 @@ final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm");
 
 DataFrame<String,String> timingStats = PerfStat.run(5, TimeUnit.MILLISECONDS, false, tasks -> {
 
-    tasks.put("Sequential", () -> DataFrame.<LocalDateTime>readCsv(options -> {
-        options.withHeader(false);
-        options.withParallel(false);
-        options.withResource(path);
-        options.withExcludeColumnIndexes(1);
-        options.withRowKeyParser(LocalDateTime.class, row -> {
+    tasks.put("Sequential", () -> DataFrame.read().<LocalDateTime>csv(options -> {
+        options.setHeader(false);
+        options.setParallel(false);
+        options.setResource(path);
+        options.setExcludeColumnIndexes(1);
+        options.setRowKeyParser(LocalDateTime.class, row -> {
             final LocalDate date = LocalDate.parse(row[0], dateFormat);
             final LocalTime time = LocalTime.parse(row[1], timeFormat);
             return LocalDateTime.of(date, time);
         });
     }));
 
-    tasks.put("Parallel", () -> DataFrame.<LocalDateTime>readCsv(options -> {
-        options.withHeader(false);
-        options.withParallel(true);
-        options.withResource(path);
-        options.withExcludeColumnIndexes(1);
-        options.withRowKeyParser(LocalDateTime.class, row -> {
+    tasks.put("Parallel", () -> DataFrame.read().<LocalDateTime>csv(options -> {
+        options.setHeader(false);
+        options.setParallel(true);
+        options.setResource(path);
+        options.setExcludeColumnIndexes(1);
+        options.setRowKeyParser(LocalDateTime.class, row -> {
             final LocalDate date = LocalDate.parse(row[0], dateFormat);
             final LocalTime time = LocalTime.parse(row[1], timeFormat);
             return LocalDateTime.of(date, time);
@@ -235,13 +239,12 @@ DataFrame<String,String> timingStats = PerfStat.run(5, TimeUnit.MILLISECONDS, fa
 
 });
 
-Chart.of(timingStats, chart -> {
-    chart.plot(0).withBars(0d);
+Chart.create().withBarPlot(timingStats, false, chart -> {
     chart.title().withText("CSV Parsing Performance (Sequential vs Parallel)");
     chart.subtitle().withText("File Size: 40MB, 760,000 lines, 6 columns");
     chart.title().withFont(new Font("Verdana", Font.PLAIN, 16));
-    chart.axes().domain().label().withText("Statistic");
-    chart.axes().range(0).label().withText("Time in Milliseconds");
+    chart.plot().axes().domain().label().withText("Statistic");
+    chart.plot().axes().range(0).label().withText("Time in Milliseconds");
     chart.legend().on();
     chart.show();
 });
@@ -256,7 +259,7 @@ where we limit the extraction to the **Open**, **Close** and **Adj Close** colum
 rows that fall on a **Monday**.
 
 <?prettify?>
-```
+```java
 DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 Set<String> columnSet = Collect.asSet("Open", "Close", "Adj Close");
 String url = "http://chart.finance.yahoo.com/table.csv?s=SPY&a=0&b=1&c=2013&d=5&e=6&f=2014&g=d&ignore=.csv";
@@ -272,7 +275,7 @@ DataFrame<LocalDate,String> frame = DataFrame.readCsv(options -> {
 });
 ```
 
-<pre style="color:black;">
+<pre class="frame">
    Index     |     Open     |    Close     |  Adj Close   |
 -----------------------------------------------------------
  2014-06-02  |  192.949997  |  192.899994  |  182.281421  |
@@ -296,7 +299,7 @@ JSON files. An example of the format is shown below, which depicts a frame with 
 keys of type `LocalDate`, and a column of booleans and a column of integers.
 
 <?prettify lang=json?>
-```
+```json
 {
   "DataFrame": {
     "rowCount": 3,
@@ -342,14 +345,14 @@ in much the same way as the CSV functions. Row and column predicates can be used
 data as required. The following code demonstrates some basic examples:
 
 <?prettify?>
-```
+```java
 //Parse a file, or classpath resource from Morpheus JSON format
 DataFrame<LocalDate,String> frame = DataFrame.readJson("/temp/data.json");
 ```
 To select a subset of rows and columns, apply predicates to the request as below.
 
 <?prettify?>
-```
+```java
 //Parse a file, or classpath resource from Morpheus JSON format, selecting only a subset of rows & columns
 final Set<String> columns = Stream.of("Date", "PostCode", "Street", "County").collect(Collectors.toSet());
 DataFrame<LocalDate,String> frame = DataFrame.readJson(options -> {

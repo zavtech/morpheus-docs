@@ -213,15 +213,14 @@ public class StatsDocs {
         });
 
         //Plot a chart of the results
-        Chart.of(timing, chart -> {
-            chart.plot(0).withBars(0d);
+        Chart.create().withBarPlot(timing, false, chart -> {
             chart.title().withText("DataFrame Row Demeaning Performance (10 Samples)");
             chart.subtitle().withText("DataFrame Dimension: 1 Million x 10");
             chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
-            chart.axes().domain().label().withText("Timing Statistic");
-            chart.axes().range(0).label().withText("Time (Milliseconds)");
+            chart.plot().axes().domain().label().withText("Timing Statistic");
+            chart.plot().axes().range(0).label().withText("Time (Milliseconds)");
             chart.legend().on().bottom();
-            chart.writerPng(new File("./docs/images/frame/data-frame-row-demean.png"), 845, 400);
+            chart.writerPng(new File("./docs/images/frame/data-frame-row-demean.png"), 845, 400, true);
             chart.show();
         });
 
@@ -398,15 +397,14 @@ public class StatsDocs {
         });
 
         //Plot a chart of the results
-        Chart.of(timing, chart -> {
-            chart.plot(0).withBars(0d);
+        Chart.create().withBarPlot(timing, false, chart -> {
             chart.title().withText("DataFrame Correlation Matrix Performance (10 Samples)");
             chart.subtitle().withText("DataFrame Dimension: 1 Million x 10");
             chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
-            chart.axes().domain().label().withText("Timing Statistic");
-            chart.axes().range(0).label().withText("Time (Milliseconds)");
+            chart.plot().axes().domain().label().withText("Timing Statistic");
+            chart.plot().axes().range(0).label().withText("Time (Milliseconds)");
             chart.legend().on().bottom();
-            chart.writerPng(new File("./docs/images/frame/data-frame-column-correl.png"), 845, 400);
+            chart.writerPng(new File("./docs/images/frame/data-frame-column-correl.png"), 845, 400, true);
             chart.show();
         });
 

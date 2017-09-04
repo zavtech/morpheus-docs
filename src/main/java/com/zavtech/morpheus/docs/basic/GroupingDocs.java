@@ -18,6 +18,7 @@ package com.zavtech.morpheus.docs.basic;
 import java.awt.*;
 import java.io.File;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
@@ -60,7 +61,7 @@ public class GroupingDocs {
             options.setHeader(false);
             options.setParallel(true);
             options.setExcludeColumns("Column-0");
-            options.setResource("/uk-house-prices-" + year + ".csv");
+            options.setResource("/Users/witdxav/Dropbox/data/uk-house-prices/uk-house-prices-" + year + ".csv");
             options.getFormats().setDateFormat("Date", "yyyy-MM-dd HH:mm");
             options.setColumnNameMapping((colName, colOrdinal) -> {
                 switch (colOrdinal) {
@@ -177,7 +178,7 @@ public class GroupingDocs {
 
 
     @Test()
-    public void groupLarge() throws Exception {
+    public void groupLargeSequential() throws Exception {
 
         //Load UK house prices for 2006
         DataFrame<Integer,String> frame = loadHousePrices(2006);
@@ -188,7 +189,7 @@ public class GroupingDocs {
         DataFrame<String,String> results = PerfStat.run(5, TimeUnit.MILLISECONDS, false, tasks -> {
             tasks.put("PropertyType", () -> frame.rows().groupBy("PropertyType"));
             tasks.put("Month", () -> frame.rows().groupBy(row -> {
-                final LocalDate date = row.getValue("Date");
+                final LocalDateTime date = row.getValue("Date");
                 return Tuple.of(date.getMonth());
             }));
             tasks.put("County", () -> frame.rows().groupBy("County"));
@@ -198,20 +199,57 @@ public class GroupingDocs {
         });
 
         //Plot the results of the combined DataFrame with timings
-        Chart.of(results, chart -> {
-            chart.plot(0).withBars(0d);
-            chart.axes().domain().label().withText("Timing Statistic");
-            chart.axes().range(0).label().withText("Time In Milliseconds");
+        Chart.create().withBarPlot(results, false, chart -> {
+            chart.plot().axes().domain().label().withText("Timing Statistic");
+            chart.plot().axes().range(0).label().withText("Time In Milliseconds");
             chart.title().withText("1-Dimensional Grouping of 1.35 Million Rows (Sequential)");
             chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
             chart.subtitle().withText("Grouping of UK House Price Transactions in 2006 by various columns");
             chart.legend().on().bottom();
-            chart.writerPng(new File("./docs/images/frame/data-frame-group-by-0.png"), 845, 400);
+            chart.writerPng(new File("./docs/images/frame/data-frame-group-by-0.png"), 845, 400, true);
             chart.show();
         });
 
         Thread.currentThread().join();
     }
+
+
+    @Test()
+    public void groupLargeParallel() throws Exception {
+
+        //Load UK house prices for 2006
+        DataFrame<Integer,String> frame = loadHousePrices(2006);
+
+        frame.out().print();
+
+        //Run 10 iterations of sequential and parallel group by Town/City
+        DataFrame<String,String> results = PerfStat.run(5, TimeUnit.MILLISECONDS, false, tasks -> {
+            tasks.put("PropertyType", () -> frame.rows().groupBy("PropertyType"));
+            tasks.put("Month", () -> frame.rows().parallel().groupBy(row -> {
+                final LocalDateTime date = row.getValue("Date");
+                return Tuple.of(date.getMonth());
+            }));
+            tasks.put("County", () -> frame.rows().parallel().groupBy("County"));
+            tasks.put("District", () -> frame.rows().parallel().groupBy("District"));
+            tasks.put("Town/City", () -> frame.rows().parallel().groupBy("Town/City"));
+            tasks.put("Locality", () -> frame.rows().parallel().groupBy("Locality"));
+        });
+
+        //Plot the results of the combined DataFrame with timings
+        Chart.create().withBarPlot(results, false, chart -> {
+            chart.plot().axes().domain().label().withText("Timing Statistic");
+            chart.plot().axes().range(0).label().withText("Time In Milliseconds");
+            chart.title().withText("1-Dimensional Grouping of 1.35 Million Rows (Sequential)");
+            chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
+            chart.subtitle().withText("Grouping of UK House Price Transactions in 2006 by various columns");
+            chart.legend().on().bottom();
+            chart.writerPng(new File("./docs/images/frame/data-frame-group-by-1.png"), 845, 400, true);
+            chart.show();
+        });
+
+        Thread.currentThread().join();
+    }
+
 
 
     @Test()
@@ -227,15 +265,14 @@ public class GroupingDocs {
         });
 
         //Plot the results of the combined DataFrame with timings
-        Chart.of(results, chart -> {
-            chart.plot(0).withBars(0d);
-            chart.axes().domain().label().withText("Timing Statistic");
-            chart.axes().range(0).label().withText("Time In Milliseconds");
+        Chart.create().withBarPlot(results, false, chart -> {
+            chart.plot().axes().domain().label().withText("Timing Statistic");
+            chart.plot().axes().range(0).label().withText("Time In Milliseconds");
             chart.title().withText("1-Dimensional Grouping of 1.35 Million Rows");
             chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
             chart.subtitle().withText("Grouping of UK House Price Transactions in 2006 by County");
             chart.legend().on().bottom();
-            chart.writerPng(new File("./docs/images/frame/data-frame-group-by-2.png"), 845, 400);
+            chart.writerPng(new File("./docs/images/frame/data-frame-group-by-2.png"), 845, 400, true);
             chart.show();
         });
 
@@ -258,15 +295,14 @@ public class GroupingDocs {
         });
 
         //Plot the results of the combined DataFrame with timings
-        Chart.of(results, chart -> {
-            chart.plot(0).withBars(0d);
-            chart.axes().domain().label().withText("Timing Statistic");
-            chart.axes().range(0).label().withText("Time In Milliseconds");
+        Chart.create().withBarPlot(results, false, chart -> {
+            chart.plot().axes().domain().label().withText("Timing Statistic");
+            chart.plot().axes().range(0).label().withText("Time In Milliseconds");
             chart.title().withText("1-Dimension vs 2-Dimensional Grouping of 1.35 Million Rows");
             chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
             chart.subtitle().withText("Grouping of UK House Price Transactions in 2006 by County x 2");
             chart.legend().on().bottom();
-            chart.writerPng(new File("./docs/images/frame/data-frame-group-by-3.png"), 845, 400);
+            chart.writerPng(new File("./docs/images/frame/data-frame-group-by-3.png"), 845, 400, true);
             chart.show();
         });
 
@@ -290,15 +326,14 @@ public class GroupingDocs {
         });
 
         //Plot the results of the combined DataFrame with timings
-        Chart.of(results, chart -> {
-            chart.plot(0).withBars(0d);
-            chart.axes().domain().label().withText("Timing Statistic");
-            chart.axes().range(0).label().withText("Time In Milliseconds");
+        Chart.create().withBarPlot(results, false, chart -> {
+            chart.plot().axes().domain().label().withText("Timing Statistic");
+            chart.plot().axes().range(0).label().withText("Time In Milliseconds");
             chart.title().withText("2-Dimensional Grouping of 1.35 Million Rows");
             chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
             chart.subtitle().withText("Grouping of UK House Price Transactions in 2006 by County & Town/City");
             chart.legend().on().bottom();
-            chart.writerPng(new File("./docs/images/frame/data-frame-group-by-4.png"), 845, 400);
+            chart.writerPng(new File("./docs/images/frame/data-frame-group-by-4.png"), 845, 400, true);
             chart.show();
         });
 
