@@ -128,9 +128,18 @@ To get a sense of what this data looks like, we can generate 4 random samples an
 to the data. The serial correlation in the residuals should be fairly obvious given that we can see a sequence of errors above the regression 
 line followed by a sequence below the line, which clearly is not typical of white noise.
 
-<p align="center">
-    <img src="../../images/gls/gls-samples.png"/>
-</p>
+<div style="float:left;width:50%;">
+    <img class="chart" src="../../images/gls/gls-sample-0.png"/>
+</div>
+<div style="float:left;width:50%;">
+    <img class="chart" src="../../images/gls/gls-sample-1.png"/>
+</div>
+<div style="float:left;width:50%;">
+    <img class="chart" src="../../images/gls/gls-sample-2.png"/>
+</div>
+<div style="float:left;width:50%;">
+    <img class="chart" src="../../images/gls/gls-sample-3.png"/>
+</div>
 
 The code to generate these plots is as follows:
 
@@ -141,24 +150,21 @@ final double rho = 0.5d;
 final double beta = 4d;
 final double alpha = 20d;
 final double sigma = 10d;
-Stream<Chart> charts = IntStream.range(0, 4).mapToObj(i -> {
+Chart.show(2, IntStream.range(0, 4).mapToObj(i -> {
     DataFrame<Integer,String> frame = sample(alpha, beta, rho, sigma, n, false);
     String title = "Sample %s Dataset, Beta: %.2f Alpha: %.2f";
     String subtitle = "Parameter estimates, Beta^: %.3f, Alpha^: %.3f";
     DataFrameLeastSquares<Integer,String> ols = frame.regress().ols("Y", "X", true, Optional::of).get();
     double betaHat = ols.getBetaValue("X", DataFrameLeastSquares.Field.PARAMETER);
     double alphaHat = ols.getInterceptValue(DataFrameLeastSquares.Field.PARAMETER);
-    return Chart.of(frame, "X", Double.class, chart -> {
-        chart.plot(0).withPoints();
+    return Chart.create().withScatterPlot(frame, false, "X", chart -> {
         chart.title().withText(String.format(title, i, beta, alpha));
         chart.title().withFont(new Font("Arial", Font.BOLD, 14));
         chart.subtitle().withText(String.format(subtitle, betaHat, alphaHat));
-        chart.style("Y").withColor(Color.RED).withPointsVisible(true);
-        chart.trendLine().add("Y", "OLS");
+        chart.plot().style("Y").withColor(Color.RED).withPointsVisible(true);
+        chart.plot().trend("Y");
     });
-});
-Chart[] chartArray = charts.toArray(Chart[]::new);
-ChartEngine.getDefaultEngine().show(2, 2, chartArray);
+}));
 ```
 
 In the real world we would obviously not know if there was serial correlation in the residuals, and if there was, what type of model might
@@ -213,7 +219,7 @@ and is illustrated below for this example. The peak at lag 1 clearly breaches th
 line (the bar at lag 0 is by definition equal to 1).
 
 <p align="center">
-    <img src="../../images/gls/gls-acf.png"/>
+    <img class="chart" src="../../images/gls/gls-acf.png"/>
 </p>
 
 The code to generate this plot is shown below, which effectively runs an OLS regression and then passes the resulting model object to the chart 
@@ -230,7 +236,7 @@ final double alpha = 20d;
 final double sigma = 10d;
 final DataFrame<Integer,String> frame = sample(alpha, beta, rho, sigma, n, true);
 frame.regress().ols("Y", "X", true, model -> {
-    Chart.acf(model, frame.rowCount()/2, 0.05d, chart -> {
+    Chart.create().withAcf(model, frame.rowCount()/2, 0.05d, chart -> {
         final double rhoHat = model.getResiduals().colAt(0).stats().autocorr(1);
         chart.title().withText("Residual Autocorrelation Plot");
         chart.subtitle().withText(String.format("Autocorrelation Lag 1 = %.3f", rhoHat));
@@ -353,15 +359,15 @@ results.rows().parallel().forEach(row -> {
 
 Array.of("Beta", "Alpha").forEach(coeff -> {
     final DataFrame<Integer,String> coeffResults = results.cols().select(col -> col.key().startsWith(coeff));
-    Chart.hist(coeffResults, 250, chart -> {
+    Chart.create().withHistPlot(coeffResults, 250, chart -> {
         String title = "%s Histogram of %s GLS regressions, Rho = %.3f";
         String subtitle = "%s estimate unbiasedness, Actual: %.2f, Mean: %.2f, Variance: %.2f";
         double actual = coeff.equals("Beta") ? beta : alpha;
         double estimate = coeffResults.colAt(coeff).stats().mean();
         double variance = coeffResults.colAt(coeff).stats().variance();
         Color color = coeff.equals("Beta") ? new Color(255, 100, 100) : new Color(102, 204, 255);
-        chart.style(coeff).withColor(color);
-        chart.axes().domain().label().withText(coeff + " Estimate");
+        chart.plot().style(coeff).withColor(color);
+        chart.plot().axes().domain().label().withText(coeff + " Estimate");
         chart.title().withText(String.format(title, coeff, regressionCount, rho));
         chart.subtitle().withText(String.format(subtitle, coeff, actual, estimate, variance));
         chart.show(700, 400);
@@ -370,8 +376,8 @@ Array.of("Beta", "Alpha").forEach(coeff -> {
 ```
 
 <p align="center">
-    <img src="../../images/gls/gls-beta-unbiasedness.png"/>
-    <img src="../../images/gls/gls-alpha-unbiasedness.png"/>
+    <img class="chart" src="../../images/gls/gls-beta-unbiasedness.png"/>
+    <img class="chart" src="../../images/gls/gls-alpha-unbiasedness.png"/>
 </p>
 
 
@@ -427,7 +433,7 @@ Array.of("Alpha", "Beta").forEach(coeff -> {
     final String olsKey = coeff + "(OLS)";
     final String glsKey = coeff + "(GLS)";
     final DataFrame<Integer,String> data = results.cols().select(olsKey, glsKey);
-    Chart.hist(data, 350, chart -> {
+    Chart.create().withHistPlot(data, 350, chart -> {
         double meanOls = results.colAt(olsKey).stats().mean();
         double stdOls = results.colAt(olsKey).stats().stdDev();
         double meanWls = results.colAt(glsKey).stats().mean();
@@ -438,7 +444,7 @@ Array.of("Alpha", "Beta").forEach(coeff -> {
         chart.title().withText(String.format(title, coeff, regressionCount, n));
         chart.title().withFont(new Font("Arial", Font.BOLD, 15));
         chart.subtitle().withText(String.format(subtitle, coeffAct, meanOls, stdOls, meanWls, stdWls));
-        chart.axes().domain().label().withText(coeff + " Estimates");
+        chart.plot().axes().domain().label().withText(coeff + " Estimates");
         chart.legend().on().bottom();
         chart.show(700, 400);
     });
@@ -446,8 +452,8 @@ Array.of("Alpha", "Beta").forEach(coeff -> {
 ```
 
 <p align="center">
-    <img src="../../images/gls/gls-beta-efficiency.png"/>
-    <img src="../../images/gls/gls-alpha-efficiency.png"/>
+    <img class="chart" src="../../images/gls/gls-beta-efficiency.png"/>
+    <img class="chart" src="../../images/gls/gls-alpha-efficiency.png"/>
 </p>
 
 ### Consistency
@@ -495,10 +501,10 @@ sampleSizes.forEach(n -> {
 
 Array.of("Beta", "Alpha").forEach(coeff -> {
     final DataFrame<Integer,String> coeffResults = results.cols().select(col -> col.key().startsWith(coeff));
-    Chart.hist(coeffResults, 250, chart -> {
-        chart.axes().domain().label().withText("Coefficient Estimate");
+    Chart.create().withHistPlot(coeffResults, 250, true, chart -> {
+        chart.plot().axes().domain().label().withText("Coefficient Estimate");
         chart.title().withText(coeff + " Histograms of " + regressionCount + " Regressions");
-        chart.subtitle().withText(coeff + " Estimate distribution as sample size increases");
+        chart.subtitle().withText(coeff + " Variance decreases as sample size increases");
         chart.legend().on().bottom();
         chart.show(700, 400);
     });
@@ -506,15 +512,18 @@ Array.of("Beta", "Alpha").forEach(coeff -> {
 ```
 
 <p align="center">
-    <img src="../../images/gls/gls-beta-consistency.png"/>
-    <img src="../../images/gls/gls-alpha-consistency.png"/>
+    <img class="chart" src="../../images/gls/gls-beta-consistency.png"/>
+    <img class="chart" src="../../images/gls/gls-alpha-consistency.png"/>
 </p>
 
 The bar charts below illustrate the monotonically decreasing variance in both the \\(\beta\\) and \\(\alpha\\) coefficients.
 
-<p align="center">
-    <img src="../../images/gls/gls-consistency.png"/>
-</p>
+<div style="float:left;width:50%;">
+    <img class="chart" src="../../images/gls/gls-beta-variance.png"/>
+</div>
+<div style="float:left;width:50%;">
+    <img class="chart" src="../../images/gls/gls-alpha-variance.png"/>
+</div>
 
 The code to generate this plot is as follows:
 
@@ -533,20 +542,18 @@ Array<DataFrame<String,StatType>> variances = Array.of("Beta", "Alpha").map(valu
     }).cols().stats().variance().transpose();
 });
 
-ChartEngine.getDefaultEngine().show(1, 2,
-    Chart.of(variances.getValue(0), chart -> {
-        chart.plot(0).withBars(0d);
-        chart.style(StatType.VARIANCE).withColor(new Color(255, 100, 100));
+Chart.show(2, Array.of(
+    Chart.create().withBarPlot(variances.getValue(0), false, chart -> {
         chart.title().withText("Beta variance with sample size");
-        chart.axes().range(0).label().withText("Beta Variance");
-        chart.axes().domain().label().withText("Sample Size");
+        chart.plot().style(StatType.VARIANCE).withColor(new Color(255, 100, 100));
+        chart.plot().axes().range(0).label().withText("Beta Variance");
+        chart.plot().axes().domain().label().withText("Sample Size");
     }),
-    Chart.of(variances.getValue(1), chart -> {
-        chart.plot(0).withBars(0d);
-        chart.style(StatType.VARIANCE).withColor(new Color(102, 204, 255));
-        chart.title().withText("Alpha variance with sample size");
-        chart.axes().range(0).label().withText("Alpha Variance");
-        chart.axes().domain().label().withText("Sample Size");
-    })
+    Chart.create().withBarPlot(variances.getValue(1), false, chart -> {
+        chart.title().withText("Beta variance with sample size");
+        chart.plot().style(StatType.VARIANCE).withColor(new Color(102, 204, 255));
+        chart.plot().axes().range(0).label().withText("Alpha Variance");
+        chart.plot().axes().domain().label().withText("Sample Size");
+    }))
 );
 ```

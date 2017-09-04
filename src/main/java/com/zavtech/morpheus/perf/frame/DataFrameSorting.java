@@ -46,14 +46,13 @@ public class DataFrameSorting {
         }
 
         //Plot timing statistics as a bar chart
-        Chart.of(results, chart -> {
-            chart.plot(0).withBars(0d);
+        Chart.create().withBarPlot(results, false, chart -> {
             chart.title().withText("Time to Sort Morpheus DataFrame of random doubles (Sample 5 times)");
             chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
-            chart.axes().domain().label().withText("Timing Statistic");
-            chart.axes().range(0).label().withText("Total Time in Milliseconds");
+            chart.plot().axes().domain().label().withText("Timing Statistic");
+            chart.plot().axes().range(0).label().withText("Total Time in Milliseconds");
             chart.legend().on();
-            chart.writerPng(new File("./morpheus-docs/docs/images/data-frame-sort.png"), 845, 400);
+            chart.writerPng(new File("./morpheus-docs/docs/images/data-frame-sort.png"), 845, 400, true);
             chart.show();
         });
     }

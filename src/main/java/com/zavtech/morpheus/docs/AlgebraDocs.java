@@ -75,13 +75,12 @@ public class AlgebraDocs {
         });
 
         //Plot timing statistics as a bar chart
-        Chart.of(timing, chart -> {
-            chart.plot(0).withBars(0d);
+        Chart.create().withBarPlot(timing, false, chart -> {
             chart.title().withText("DataFrame Dot Product (Sample 10 times)");
-            chart.axes().domain().label().withText("Timing Statistic");
-            chart.axes().range(0).label().withText("Total Time in Milliseconds");
+            chart.plot().axes().domain().label().withText("Timing Statistic");
+            chart.plot().axes().range(0).label().withText("Total Time in Milliseconds");
             chart.legend().on();
-            //chart.writerPng(new File("./morpheus-docs/docs/images/data-frame-apply-doubles.png"), 845, 400);
+            chart.writerPng(new File("./morpheus-docs/docs/images/data-frame-apply-doubles.png"), 845, 400, true);
             chart.show();
         });
 

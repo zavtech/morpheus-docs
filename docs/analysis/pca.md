@@ -208,13 +208,12 @@ Collect.<String,DataFrame<Integer,Integer>>asMap(mapping -> {
 });
 
 DataFrame<Integer,String> chartData = result.rows().select(c -> c.ordinal() < 10).copy();
-Chart.of(chartData.rows().mapKeys(r -> String.valueOf(r.ordinal())), chart -> {
-    chart.plot(0).withBars(0d);
-    chart.style("Red").withColor(Color.RED);
-    chart.style("Green").withColor(Color.GREEN);
-    chart.style("Blue").withColor(Color.BLUE);
-    chart.axes().range(0).label().withText("Percent of Variance");
-    chart.axes().domain().label().withText("Principal Component");
+Chart.create().withBarPlot(chartData.rows().mapKeys(r -> String.valueOf(r.ordinal())), false, chart -> {
+    chart.plot().style("Red").withColor(Color.RED);
+    chart.plot().style("Green").withColor(Color.GREEN);
+    chart.plot().style("Blue").withColor(Color.BLUE);
+    chart.plot().axes().range(0).label().withText("Percent of Variance");
+    chart.plot().axes().domain().label().withText("Principal Component");
     chart.title().withText("Eigen Spectrum (Percent of Explained Variance)");
     chart.legend().on().bottom();
     chart.show();
@@ -227,7 +226,7 @@ off fairly monotonically, and by the time we get to the fifth component, only ab
 colors.
 
 <div style="text-align:center;">
-    <img src="../../images/pca/poppet-explained-variance.png"/>
+    <img class="chart" src="../../images/pca/poppet-explained-variance.png"/>
 </div>
 
 ### Dimensional Reduction

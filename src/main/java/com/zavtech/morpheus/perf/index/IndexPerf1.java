@@ -56,12 +56,11 @@ public class IndexPerf1 {
             });
         });
 
-        Chart.of(times, chart -> {
-            chart.plot(0).withBars(0d);
+        Chart.create().withBarPlot(times, false, chart -> {
             chart.title().withText("Median Index Creation Times, 10 million entries");
             chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
-            chart.axes().domain().label().withText("Timing Statistic");
-            chart.axes().range(0).label().withText("Time (Milliseconds)");
+            chart.plot().axes().domain().label().withText("Timing Statistic");
+            chart.plot().axes().range(0).label().withText("Time (Milliseconds)");
             chart.legend().on().bottom();
             //chart.writerPng(new File("./morpheus-docs/docs/images/data-frame-create-times.png"), 845, 400);
             chart.show();

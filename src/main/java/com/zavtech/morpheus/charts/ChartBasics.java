@@ -16,6 +16,8 @@
 
 package com.zavtech.morpheus.charts;
 
+import com.zavtech.morpheus.viz.chart.Chart;
+
 /**
  * Class summary goes here...
  *
@@ -25,11 +27,5 @@ package com.zavtech.morpheus.charts;
  */
 public class ChartBasics {
 
-    /**
-     * Constructor
-     */
-    public ChartBasics() {
-        super();
-    }
 
 }

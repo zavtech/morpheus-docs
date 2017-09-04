@@ -621,7 +621,9 @@ Below we assess the relative performance of these techniques. For the former cas
 which is natively supported in the Morpheus API. The latter approach cannot be parallelized without writing a lot of code. The results 
 are as follows.
 
-![Plot](../images/frame/data-frame-row-demean.png)
+<p align="center">
+    <img class="chart" src="../../images/frame/data-frame-row-demean.png"/>
+</p>
 
 Firstly, kudos to the Java Virtual Machine in that the so called **Bad** approach is not that much slower than the **Good(sequential)** approach,
 even given that far more objecs are created in the former scenario. They are all very short lived objects, and we know the current generation
@@ -666,13 +668,12 @@ DataFrame<String,String> timing = PerfStat.run(10, TimeUnit.MILLISECONDS, false,
 });
 
 //Plot a chart of the results
-Chart.of(timing, chart -> {
-    chart.plot(0).withBars(0d);
+Chart.create().withBarPlot(timing, false, chart -> {
     chart.title().withText("DataFrame Row Demeaning Performance (10 Samples)");
     chart.subtitle().withText("DataFrame Dimension: 1 Million x 10");
     chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
-    chart.axes().domain().label().withText("Timing Statistic");
-    chart.axes().range(0).label().withText("Time (Milliseconds)");
+    chart.plot().axes().domain().label().withText("Timing Statistic");
+    chart.plot().axes().range(0).label().withText("Time (Milliseconds)");
     chart.legend().on().bottom();
     chart.show();
 });
@@ -685,7 +686,9 @@ It was suggested that computing the covariance or correlation matrix for a datas
 problem. The example below creates a `DataFrame` of 1 million rows by 10 columns, and computes the correlation in the column
 dimension using both **sequential** and **parallel** execution, and then plots the results.
 
-![Plot](../images/frame/data-frame-column-correl.png)
+<p align="center">
+    <img class="chart" src="../../images/frame/data-frame-column-correl.png"/>
+</p>
 
 These results suggest a roughly 3 times improvement in performance in parallel execution for this example. The performance 
 differential for such a scenario is likely to be sensitive to many factors, especially the shape of the `DataFrame`, so take 
@@ -700,18 +703,17 @@ DataFrame<LocalDate,String> frame = random(1000000, "A", "B", "C", "D", "E", "F"
 //Run 10 performance samples, randomizing the frame before each test
 DataFrame<String,String> timing = PerfStat.run(10, TimeUnit.MILLISECONDS, false, tasks -> {
     tasks.beforeEach(() -> frame.applyDoubles(v -> Math.random() * 100d));
-    tasks.put("Sequential)", () -> frame.cols().stats().correlation());
-    tasks.put("Good(parallel)", () -> frame.cols().parallel().stats().correlation());
+    tasks.put("Sequential", () -> frame.cols().stats().correlation());
+    tasks.put("Parallel", () -> frame.cols().parallel().stats().correlation());
 });
 
 //Plot a chart of the results
-Chart.of(timing, chart -> {
-    chart.plot(0).withBars(0d);
+Chart.create().withBarPlot(timing, false, chart -> {
     chart.title().withText("DataFrame Correlation Matrix Performance (10 Samples)");
     chart.subtitle().withText("DataFrame Dimension: 1 Million x 10");
     chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
-    chart.axes().domain().label().withText("Timing Statistic");
-    chart.axes().range(0).label().withText("Time (Milliseconds)");
+    chart.plot().axes().domain().label().withText("Timing Statistic");
+    chart.plot().axes().range(0).label().withText("Time (Milliseconds)");
     chart.legend().on().bottom();
     chart.show();
 });

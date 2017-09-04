@@ -71,20 +71,19 @@ this data as follows:
 <?prettify?>
 ```java
 DataFrame<Integer,String> frame = DataFrame.read().csv("/supervisor.csv");
-Chart.of(frame, "x",Double.class, chart -> {
-    chart.plot(0).withPoints();
-    chart.style("y").withPointsVisible(true).withColor(Color.BLUE).withPointShape(ChartShape.DIAMOND);
+Chart.create().withScatterPlot(frame, false, "x", chart -> {
+    chart.plot().style("y").withColor(Color.BLUE);
     chart.title().withText("Supervisors (y) vs Workers (x)");
     chart.subtitle().withText("Source: Regression by Example, Chatterjee & Price (1977)");
-    chart.axes().domain().label().withText("Worker Count");
-    chart.axes().range(0).label().withText("Supervisor Count");
-    chart.trendLine().add("y", "OLS");
+    chart.plot().axes().domain().label().withText("Worker Count");
+    chart.plot().axes().range(0).label().withText("Supervisor Count");
+    chart.plot().trend("y");
     chart.show();
 });
 ```
 
 <p align="center">
-    <img src="../../images/wls/wls-chatterjee1.png"/>
+    <img class="chart" src="../../images/wls/wls-chatterjee1.png"/>
 </p>
 
 If the increasing variance in the dependent variable is not obvious from the scatter plot, it can be useful to plot the residuals from an OLS
@@ -93,11 +92,11 @@ regression against the fitted values. The code below shows how to do this, and i
 <?prettify?>
 ```java
 DataFrame<Integer,String> frame = DataFrame.read().csv("/supervisor.csv");
-frame.regress().ols("y", "x", model -> {
-    Chart.residualsVsFitted(model, chart -> {
+frame.regress().ols("y", "x", true, model -> {
+    Chart.create().withResidualsVsFitted(model, chart -> {
         chart.title().withText("OLS Residuals vs Fitted Y Values");
-        chart.axes().domain().label().withText("Y(fitted)");
-        chart.axes().range(0).label().withText("OLS Residual");
+        chart.plot().axes().domain().label().withText("Y(fitted)");
+        chart.plot().axes().range(0).label().withText("OLS Residual");
         chart.legend().off();
         chart.show();
     });
@@ -106,7 +105,7 @@ frame.regress().ols("y", "x", model -> {
 ```
 
 <p align="center">
-    <img src="../../images/wls/wls-chatterjee2.png"/>
+    <img class="chart" src="../../images/wls/wls-chatterjee2.png"/>
 </p>
 
 While it is pretty clear from the above plots that heteroscedasticity is present in the data, which is a violation of one of the
@@ -151,19 +150,18 @@ The code below generates a plot of the absolute value of the residuals against t
 <?prettify?>
 ```java
 DataFrame<Integer,String> frame = DataFrame.read().csv("/supervisor.csv");
-frame.regress().ols("y", "x", model -> {
+frame.regress().ols("y", "x", true, model -> {
     final DataFrame<Integer,String> residuals = model.getResiduals();
     final DataFrame<Integer,String> residualsAbs = residuals.mapToDoubles(v -> Math.abs(v.getDouble()));
     final DataFrame<Integer,String> xValues = frame.cols().select("x");
     final DataFrame<Integer,String> newData = DataFrame.concatColumns(residualsAbs, xValues);
-    Chart.of(newData, "x", Double.class, chart -> {
-        chart.plot(0).withPoints();
-        chart.style("Residuals").withPointsVisible(true).withColor(Color.BLUE).withPointShape(ChartShape.DIAMOND);
+    Chart.create().withScatterPlot(newData, false, "x", chart -> {
+        chart.plot().style("Residuals").withPointsVisible(true).withColor(Color.BLUE).withPointShape(ChartShape.DIAMOND);
         chart.title().withText("ABS(Residuals) vs Predictor of Original Regression");
         chart.subtitle().withText("Regression line is a proxy for change in variance of dependent variable");
-        chart.axes().domain().label().withText("Worker Count");
-        chart.axes().range(0).label().withText("|Residual|");
-        chart.trendLine().add("Residuals", "Trend");
+        chart.plot().axes().domain().label().withText("Worker Count");
+        chart.plot().axes().range(0).label().withText("|Residual|");
+        chart.plot().trend("Residuals");
         chart.show();
     });
     return Optional.empty();
@@ -171,7 +169,7 @@ frame.regress().ols("y", "x", model -> {
 ```
 
 <p align="center">
-    <img src="../../images/wls/wls-chatterjee4.png"/>
+    <img class="chart" src="../../images/wls/wls-chatterjee4.png"/>
 </p>
 
 We can now use the reciprocal of the fitted values of this regression as the elements of the diagonal weight matrix, W. The code
@@ -251,31 +249,30 @@ public void plotCompare() throws Exception {
 
     DataFrame<Integer,String> frame = DataFrame.read().csv("/supervisor.csv");
     double[] x = frame.colAt("x").toDoubleStream().toArray();
-
-    DataFrameLeastSquares<Integer,String> ols = frame.cols().ols("y", "x", Optional::of).orElse(null);
+    
+    DataFrameLeastSquares<Integer,String> ols = frame.regress().ols("y", "x", true, Optional::of).orElse(null);
     double olsAlpha = ols.getInterceptValue(DataFrameLeastSquares.Field.PARAMETER);
     double olsBeta = ols.getBetaValue("x", DataFrameLeastSquares.Field.PARAMETER);
     DataFrame<Integer,String> olsFit = createFitted(olsAlpha, olsBeta, x, "OLS");
-
+    
     Array<Double> weights = computeWeights(frame);
-    DataFrameLeastSquares<Integer,String> wls = frame.cols().wls("y", "x", weights, Optional::of).orElse(null);
+    DataFrameLeastSquares<Integer,String> wls = frame.regress().wls("y", "x", weights, true, Optional::of).orElse(null);
     double wlsAlpha = wls.getInterceptValue(DataFrameLeastSquares.Field.PARAMETER);
     double wlsBeta = wls.getBetaValue("x", DataFrameLeastSquares.Field.PARAMETER);
     DataFrame<Integer,String> wlsFit = createFitted(wlsAlpha, wlsBeta, x, "WLS");
-
-    Chart.withPoints(frame, "x", Double.class, chart -> {
-        chart.plot(0).withPoints();
-        chart.style("y").withColor(Color.BLUE).withPointsVisible(true);
-        chart.data().add(olsFit, "x");
-        chart.data().add(wlsFit, "x");
-        chart.plot(1).withLines();
-        chart.plot(2).withLines();
+    
+    Chart.create().withScatterPlot(frame, false, "x", chart -> {
+        chart.plot().style("y").withColor(Color.BLUE);
+        chart.plot().<String>data().add(olsFit, "x");
+        chart.plot().<String>data().add(wlsFit, "x");
+        chart.plot().render(1).withLines(false, false);
+        chart.plot().render(2).withLines(false, false);
+        chart.plot().axes().domain().label().withText("X-value");
+        chart.plot().axes().range(0).label().withText("Y-value");
+        chart.plot().style("OLS").withColor(Color.RED).withLineWidth(2f);
+        chart.plot().style("WLS").withColor(Color.GREEN).withLineWidth(2f);
         chart.title().withText("OLS vs WLS Regression Comparison");
         chart.subtitle().withText(String.format("Beta OLS: %.3f, Beta WLS: %.3f", olsBeta, wlsBeta));
-        chart.axes().domain().label().withText("X-value");
-        chart.axes().range(0).label().withText("Y-value");
-        chart.style("OLS").withColor(Color.RED).withLineWidth(2f);
-        chart.style("WLS").withColor(Color.GREEN).withLineWidth(2f);
         chart.legend().on().right();
         chart.show();
     });
@@ -301,7 +298,7 @@ private DataFrame<Integer,String> createFitted(double alpha, double beta, double
 ```
 
 <p align="center">
-    <img src="../../images/wls/wls-chatterjee3.png"/>
+    <img class="chart" src="../../images/wls/wls-chatterjee3.png"/>
 </p>
 
 ### Unbiasedness
@@ -349,29 +346,35 @@ increasing for larger values of the independent variable.
 ```java
 final double beta = 4d;
 final double alpha = 20d;
-Stream<Chart> charts = IntStream.range(0, 4).mapToObj(i -> {
+Chart.show(2, IntStream.range(0, 4).mapToObj(i -> {
     DataFrame<Integer,String> frame = sample(alpha, beta, 1, 1, 100);
-    String title = "Sample %s Dataset, Beta: %.3f Alpha: %.3f";
-    String subtitle = "Parameter estimates, Beta^: %.2f, Alpha^: %.2f";
-    DataFrameLeastSquares<Integer,String> ols = frame.cols().ols("Y", "X", Optional::of).get();
+    String title = "Sample %s Dataset, Beta: %.2f Alpha: %.2f";
+    String subtitle = "Parameter estimates, Beta^: %.3f, Alpha^: %.3f";
+    DataFrameLeastSquares<Integer,String> ols = frame.regress().ols("Y", "X", true, Optional::of).get();
     double betaHat = ols.getBetaValue("X", DataFrameLeastSquares.Field.PARAMETER);
     double alphaHat = ols.getInterceptValue(DataFrameLeastSquares.Field.PARAMETER);
-    return Chart.of(frame, "X", Double.class, chart -> {
-        chart.plot(0).withPoints();
+    return Chart.create().withScatterPlot(frame, false, "X", chart -> {
         chart.title().withText(String.format(title, i, beta, alpha));
         chart.title().withFont(new Font("Arial", Font.BOLD, 14));
         chart.subtitle().withText(String.format(subtitle, betaHat, alphaHat));
-        chart.style("Y").withColor(Color.RED).withPointsVisible(true);
-        chart.trendLine().add("Y", "OLS");
+        chart.plot().style("Y").withColor(Color.RED).withPointsVisible(true);
+        chart.plot().trend("Y").withLineWidth(2f);
     });
-});
-Chart[] chartArray = charts.toArray(Chart[]::new);
-ChartEngine.getDefaultEngine().show(4, 4, chartArray);
+}));
 ```
 
-<p align="center">
-    <img src="../../images/wls/wls-samples.png"/>
-</p>
+<div style="float:left;width:50%;">
+    <img class="chart" src="../../images/wls/wls-sample-0.png"/>
+</div>
+<div style="float:left;width:50%;">
+    <img class="chart" src="../../images/wls/wls-sample-1.png"/>
+</div>
+<div style="float:left;width:50%;">
+    <img class="chart" src="../../images/wls/wls-sample-2.png"/>
+</div>
+<div style="float:left;width:50%;">
+    <img class="chart" src="../../images/wls/wls-sample-3.png"/>
+</div>
 
 Now that we have a function that can generate data samples given some population parameters and with the appropriate variance characteristics,
 we can proceed to run regressions on these samples and record the estimates and assess whether they are indeed centered on the known 
@@ -402,15 +405,15 @@ results.rows().parallel().forEach(row -> {
 
 Array.of("Beta", "Alpha").forEach(coeff -> {
     final DataFrame<Integer,String> coeffResults = results.cols().select(col -> col.key().startsWith(coeff));
-    Chart.hist(coeffResults, 250, chart -> {
+    Chart.create().withHistPlot(coeffResults, 250, chart -> {
         String title = "%s Histogram of %s WLS regressions";
         String subtitle = "%s estimate unbiasedness, Actual: %.2f, Mean: %.2f, Variance: %.2f";
         double actual = coeff.equals("Beta") ? beta : alpha;
         double estimate = coeffResults.colAt(coeff).stats().mean();
         double variance = coeffResults.colAt(coeff).stats().variance();
         Color color = coeff.equals("Beta") ? new Color(255, 100, 100) : new Color(102, 204, 255);
-        chart.style(coeff).withColor(color);
-        chart.axes().domain().label().withText(coeff + " Estimate");
+        chart.plot().style(coeff).withColor(color);
+        chart.plot().axes().domain().label().withText(coeff + " Estimate");
         chart.title().withText(String.format(title, coeff, regressionCount));
         chart.subtitle().withText(String.format(subtitle, coeff, actual, estimate, variance));
         chart.show(700, 400);
@@ -424,8 +427,8 @@ results printed below, the **mean** slope and intercept coefficient was an exact
 decimal places.
 
 <p align="center">
-    <img src="../../images/wls/wls-Beta-unbiasedness.png"/>
-    <img src="../../images/wls/wls-Alpha-unbiasedness.png"/>
+    <img class="chart" src="../../images/wls/wls-Beta-unbiasedness.png"/>
+    <img class="chart" src="../../images/wls/wls-Alpha-unbiasedness.png"/>
 </p>
 
 
@@ -479,7 +482,7 @@ Array.of("Alpha", "Beta").forEach(coeff -> {
     final String olsKey = coeff + "(OLS)";
     final String wlsKey = coeff + "(WLS)";
     final DataFrame<Integer,String> data = results.cols().select(olsKey, wlsKey);
-    Chart.hist(data, 350, chart -> {
+    Chart.create().withHistPlot(data, 200, true, chart -> {
         double meanOls = results.colAt(olsKey).stats().mean();
         double stdOls = results.colAt(olsKey).stats().stdDev();
         double meanWls = results.colAt(wlsKey).stats().mean();
@@ -490,8 +493,9 @@ Array.of("Alpha", "Beta").forEach(coeff -> {
         chart.title().withText(String.format(title, coeff, regressionCount, n));
         chart.title().withFont(new Font("Arial", Font.BOLD, 15));
         chart.subtitle().withText(String.format(subtitle, coeffAct, meanOls, stdOls, meanWls, stdWls));
-        chart.axes().domain().label().withText(coeff + " Estimates");
+        chart.plot().axes().domain().label().withText(coeff + " Estimates");
         chart.legend().on().bottom();
+        chart.writerPng(new File(String.format("./docs/images/wls/wls-%s-efficiency.png", coeff)), 700, 400, true);
         chart.show(700, 400);
     });
 });
@@ -502,8 +506,8 @@ coefficient. The efficiency of each model however is clearly different, and as e
 variance in both the intercept and slope estimates compared to OLS.
 
 <p align="center">
-    <img src="../../images/wls/wls-beta-histogram.png"/>
-    <img src="../../images/wls/wls-alpha-histogram.png"/>
+    <img class="chart" src="../../images/wls/wls-Beta-efficiency.png"/>
+    <img class="chart" src="../../images/wls/wls-Alpha-efficiency.png"/>
 </p>
 
 ### Consistency
@@ -551,8 +555,8 @@ sampleSizes.forEach(n -> {
 
 Array.of("Beta", "Alpha").forEach(coeff -> {
     final DataFrame<Integer,String> coeffResults = results.cols().select(col -> col.key().startsWith(coeff));
-    Chart.hist(coeffResults, 250, chart -> {
-        chart.axes().domain().label().withText("Coefficient Estimate");
+    Chart.create().withHistPlot(coeffResults, 250, true, chart -> {
+        chart.plot().axes().domain().label().withText("Coefficient Estimate");
         chart.title().withText(coeff + " Histograms of " + regressionCount + " Regressions");
         chart.subtitle().withText(coeff + " Estimate distribution as sample size increases");
         chart.legend().on().bottom();
@@ -565,17 +569,20 @@ The plots below demonstrate a clear pattern of decreasing variance in the slope 
 regard to the intercept estimate, the evidence is less obvious, and the chart suggests only a maringal reduction in variance.
 
 <p align="center">
-    <img src="../../images/wls/wls-Beta-consistency.png"/>
-    <img src="../../images/wls/wls-Alpha-consistency.png"/>
+    <img class="chart" src="../../images/wls/wls-Beta-consistency.png"/>
+    <img class="chart" src="../../images/wls/wls-Alpha-consistency.png"/>
 </p>
 
 To get a better sense of the trend in estimation variance as sample size increases, we can compute the variance for all estimates
 in a given run, and generate a bar plot of the results. The visualization below suggests the variance in the intercept is decreasing,
 just not as aggressively as the slope coefficient in this case.
 
-<p align="center">
-    <img src="../../images/wls/wls-consistency.png"/>
-</p>
+<div style="float:left;width:50%;">
+    <img class="chart" src="../../images/wls/wls-beta-variance.png"/>
+</div>
+<div style="float:left;width:50%;">
+    <img class="chart" src="../../images/wls/wls-alpha-variance.png"/>
+</div>
 
 The code to generate this plot is as follows:
 
@@ -594,20 +601,18 @@ Array<DataFrame<String,StatType>> variances = Array.of("Beta", "Alpha").map(valu
     }).cols().stats().variance().transpose();
 });
 
-ChartEngine.getDefaultEngine().show(1, 2,
-    Chart.of(variances.getValue(0), chart -> {
-        chart.plot(0).withBars(0d);
-        chart.style(StatType.VARIANCE).withColor(new Color(255, 100, 100));
+Chart.show(2, Collect.asList(
+    Chart.create().withBarPlot(variances.getValue(0), false, chart -> {
         chart.title().withText("Beta variance with sample size");
-        chart.axes().range(0).label().withText("Beta Variance");
-        chart.axes().domain().label().withText("Sample Size");
+        chart.plot().style(StatType.VARIANCE).withColor(new Color(255, 100, 100));
+        chart.plot().axes().range(0).label().withText("Beta Variance");
+        chart.plot().axes().domain().label().withText("Sample Size");
     }),
-    Chart.of(variances.getValue(1), chart -> {
-        chart.plot(0).withBars(0d);
-        chart.style(StatType.VARIANCE).withColor(new Color(102, 204, 255));
+    Chart.create().withBarPlot(variances.getValue(1), false, chart -> {
         chart.title().withText("Alpha variance with sample size");
-        chart.axes().range(0).label().withText("Alpha Variance");
-        chart.axes().domain().label().withText("Sample Size");
-    })
+        chart.plot().style(StatType.VARIANCE).withColor(new Color(102, 204, 255));
+        chart.plot().axes().range(0).label().withText("Alpha Variance");
+        chart.plot().axes().domain().label().withText("Sample Size");
+    }))
 );
 ```

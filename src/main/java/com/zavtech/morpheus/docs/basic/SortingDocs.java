@@ -177,15 +177,14 @@ public class SortingDocs {
         }));
 
         //Plot the results of the combined DataFrame with timings
-        Chart.of(results, chart -> {
-            chart.plot(0).withBars(0d);
-            chart.axes().domain().label().withText("Timing Statistic");
-            chart.axes().range(0).label().withText("Time In Milliseconds");
+        Chart.create().withBarPlot(results, false, chart -> {
+            chart.plot().axes().domain().label().withText("Timing Statistic");
+            chart.plot().axes().range(0).label().withText("Time In Milliseconds");
             chart.title().withText("DataFrame Sorting Performance (Sequential)");
             chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
             chart.subtitle().withText("Row Sort with counts from 1M to 5M rows");
             chart.legend().on().bottom();
-            chart.writerPng(new File("./docs/images/frame/data-frame-row-sort-sequential.png"), 845, 400);
+            chart.writerPng(new File("./docs/images/frame/data-frame-row-sort-sequential.png"), 845, 400, true);
             chart.show();
         });
     }
@@ -213,15 +212,14 @@ public class SortingDocs {
         }));
 
         //Plot the results of the combined DataFrame with timings
-        Chart.of(results, chart -> {
-            chart.plot(0).withBars(0d);
-            chart.axes().domain().label().withText("Timing Statistic");
-            chart.axes().range(0).label().withText("Time In Milliseconds");
+        Chart.create().withBarPlot(results, false, chart -> {
+            chart.plot().axes().domain().label().withText("Timing Statistic");
+            chart.plot().axes().range(0).label().withText("Time In Milliseconds");
             chart.title().withText("DataFrame Sorting Performance (Parallel)");
             chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
             chart.subtitle().withText("Row Sort with counts from 1M to 5M rows");
             chart.legend().on().bottom();
-            chart.writerPng(new File("./docs/images/frame/data-frame-row-sort-parallel.png"), 845, 400);
+            chart.writerPng(new File("./docs/images/frame/data-frame-row-sort-parallel.png"), 845, 400, true);
             chart.show();
         });
     }
@@ -250,15 +248,14 @@ public class SortingDocs {
         });
 
         //Plot the results of the combined DataFrame with timings
-        Chart.of(results, chart -> {
-            chart.plot(0).withBars(0d);
-            chart.axes().domain().label().withText("Timing Statistic");
-            chart.axes().range(0).label().withText("Time In Milliseconds");
+        Chart.create().withBarPlot(results, false, chart -> {
+            chart.plot().axes().domain().label().withText("Timing Statistic");
+            chart.plot().axes().range(0).label().withText("Time In Milliseconds");
             chart.title().withText("DataFrame Sorting Performance With & Without Comparator");
             chart.subtitle().withText("1 Million rows of random double precision values");
             chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
             chart.legend().on().bottom();
-            chart.writerPng(new File("./docs/images/frame/data-frame-row-sort-comparator.png"), 845, 400);
+            chart.writerPng(new File("./docs/images/frame/data-frame-row-sort-comparator.png"), 845, 400, true);
             chart.show();
         });
 

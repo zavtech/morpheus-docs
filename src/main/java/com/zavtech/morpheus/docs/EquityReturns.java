@@ -252,8 +252,7 @@ public class EquityReturns {
         result.cols().stats().correlation().out().print();
 
         DataFrame<Integer,Integer> cumSum = cumSum(result);
-        Chart.of(cumSum, chart -> {
-            chart.plot(0).withLines();
+        Chart.create().withLinePlot(cumSum, chart -> {
             chart.show(1024, 768);
         });
 
@@ -319,16 +318,14 @@ public class EquityReturns {
         DataFrame<LocalDate,String> prices = loadClosePrices(start, end, tickers);
         DataFrame<LocalDate,String> returns = computeReturns(prices);
         DataFrame<LocalDate,String> returnsEwma20 = computeReturns(prices.smooth(false).ema(20));
-        Chart.of(returns, tickers[0], Double.class, chart -> {
-            chart.plot(0).withPoints();
-            chart.style(tickers[1]).withColor(Color.RED).withPointsVisible(true);
-            chart.style(tickers[1]).withPointShape(ChartShape.DIAMOND);
+        Chart.create().withScatterPlot(returns, false, tickers[0], chart -> {
+            chart.plot().style(tickers[1]).withColor(Color.RED).withPointsVisible(true);
+            chart.plot().style(tickers[1]).withPointShape(ChartShape.DIAMOND);
             chart.show(800, 600);
         });
-        Chart.of(returnsEwma20, tickers[0], Double.class, chart -> {
-            chart.plot(0).withPoints();
-            chart.style(tickers[1]).withColor(Color.BLUE).withPointsVisible(true);
-            chart.style(tickers[1]).withPointShape(ChartShape.DIAMOND);
+        Chart.create().withScatterPlot(returnsEwma20, false, tickers[0], chart -> {
+            chart.plot().style(tickers[1]).withColor(Color.BLUE).withPointsVisible(true);
+            chart.plot().style(tickers[1]).withPointShape(ChartShape.DIAMOND);
             chart.show(800, 600);
         });
         Thread.currentThread().join();
@@ -345,10 +342,9 @@ public class EquityReturns {
         DataFrame<LocalDate,String> closePricesEma = closePrices.smooth(false).ema(10).cols().replaceKey("Close", "Close(EWMA)");
         DataFrame<LocalDate,String> combined = DataFrame.concatColumns(closePrices, closePricesEma);
         combined.out().print();
-        Chart.of(combined, chart -> {
-            chart.plot(0).withLines();
-            chart.style("Close").withColor(Color.RED);
-            chart.style("Close(EWMA)").withColor(Color.BLUE);
+        Chart.create().withLinePlot(combined, chart -> {
+            chart.plot().style("Close").withColor(Color.RED);
+            chart.plot().style("Close(EWMA)").withColor(Color.BLUE);
             chart.legend().on().bottom();
             chart.show(1024, 768);
         });
@@ -362,8 +358,7 @@ public class EquityReturns {
         LocalDate end = LocalDate.of(2014, 7, 31);
         DataFrame<LocalDate,String> returns = loadCumReturns(start, end, "AAPL", "AMGN", "GE", "C", "ORCL", "BLK");
         returns.out().print();
-        Chart.of(returns, chart -> {
-            chart.plot(0).withLines();
+        Chart.create().withLinePlot(returns, chart -> {
             chart.legend().on().bottom();
             chart.show(1024, 768);
         });
@@ -398,16 +393,15 @@ public class EquityReturns {
             riskReturn.data().setDouble(row.ordinal(), "Return", ret);
         });
 
-        Chart.hist(riskReturn, "Return", 250, chart -> {
+        Chart.create().withHistPlot(riskReturn, 250, "Return", chart -> {
             chart.show(1024, 768);
         });
 
-        Chart.of(riskReturn, "Risk", Double.class, chart -> {
-            chart.plot(0).withPoints();
-            chart.style("Return").withColor(Color.RED).withPointsVisible(true);
+        Chart.create().withScatterPlot(riskReturn, false, "Risk", chart -> {
             chart.title().withText("Risk / Return Profiles of 100,000 Random Portfolios");
-            chart.axes().domain().label().withText("Portfolio Risk (StdDev of Return)");
-            chart.axes().range(0).label().withText("Portfolio Return");
+            chart.plot().style("Return").withColor(Color.RED).withPointsVisible(true);
+            chart.plot().axes().domain().label().withText("Portfolio Risk (StdDev of Return)");
+            chart.plot().axes().range(0).label().withText("Portfolio Return");
             chart.show(1024, 768);
         });
 

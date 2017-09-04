@@ -17,13 +17,10 @@ package com.zavtech.morpheus.docs.stats;
 
 import java.awt.*;
 import java.io.File;
-import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.testng.annotations.Test;
@@ -33,8 +30,8 @@ import com.zavtech.morpheus.frame.DataFrame;
 import com.zavtech.morpheus.frame.DataFrameLeastSquares;
 import com.zavtech.morpheus.range.Range;
 import com.zavtech.morpheus.stats.StatType;
+import com.zavtech.morpheus.util.Collect;
 import com.zavtech.morpheus.viz.chart.Chart;
-import com.zavtech.morpheus.viz.chart.ChartEngine;
 
 
 /**
@@ -82,64 +79,27 @@ public class OLSDocs2 {
 
 
     @Test()
-    public void regress() {
-        final DataFrame<Integer,String> frame = sample(200);
-
-        frame.regress().ols("Y", "X", true, model -> {
-            model.withSolver(DataFrameLeastSquares.Solver.INV);
-            System.out.println(model);
-            return Optional.empty();
-        });
-
-        frame.regress().ols("Y", "X", true, model -> {
-            model.withSolver(DataFrameLeastSquares.Solver.QR);
-            System.out.println(model);
-            return Optional.empty();
-        });
-    }
-
-
-    @Test()
-    public void plotScatter() throws Exception {
-        final DataFrame<Integer,String> frame = sample(100);
-        Chart.of(frame, "X", Double.class, chart -> {
-            chart.plot(0).withPoints();
-            chart.title().withText("OLS Regression");
-            chart.subtitle().withText("Artificially generated dataset");
-            chart.title().withFont(new Font("Arial", Font.BOLD, 16));
-            chart.axes().domain().label().withText("X");
-            chart.axes().range(0).label().withText("Y");
-            chart.style("Y").withColor(Color.RED).withPointsVisible(true);
-            chart.trendLine().add("Y", "Y(fitted)");
-            chart.show();
-        });
-        Thread.currentThread().join();
-    }
-
-
-    @Test()
     public void plotScatterMany() throws Exception {
         final double beta = 1.45d;
         final double alpha = 4.15d;
         final double sigma = 20d;
-        Stream<Chart> charts = IntStream.range(0, 4).mapToObj(i -> {
+        Chart.show(2, IntStream.range(0, 4).mapToObj(i -> {
             DataFrame<Integer,String> frame = sample(alpha, beta, 0, 1, sigma, 100);
             String title = "Sample %s Dataset, Beta: %.2f Alpha: %.2f";
             String subtitle = "Parameter estimates, Beta^: %.3f, Alpha^: %.3f";
             DataFrameLeastSquares<Integer,String> ols = frame.regress().ols("Y", "X", true, Optional::of).get();
             double betaHat = ols.getBetaValue("X", DataFrameLeastSquares.Field.PARAMETER);
             double alphaHat = ols.getInterceptValue(DataFrameLeastSquares.Field.PARAMETER);
-            return Chart.of(frame, "X", Double.class, chart -> {
-                chart.plot(0).withPoints();
+            return Chart.create().withScatterPlot(frame, false, "X", chart -> {
                 chart.title().withText(String.format(title, i, beta, alpha));
                 chart.title().withFont(new Font("Arial", Font.BOLD, 14));
                 chart.subtitle().withText(String.format(subtitle, betaHat, alphaHat));
-                chart.style("Y").withColor(Color.RED).withPointsVisible(true);
-                chart.trendLine().add("Y", "OLS");
+                chart.plot().style("Y").withColor(Color.RED).withPointsVisible(true);
+                chart.plot().trend("Y");
+                chart.writerPng(new File(String.format("./docs/images/ols/ols-sample-%s.png", i)), 350, 250, true);
             });
-        });
-        List<Chart> chartArray = charts.collect(Collectors.toList());
-        ChartEngine.getDefaultEngine().show(4, 4, chartArray);
+        }));
+
         Thread.currentThread().join();
     }
 
@@ -172,7 +132,7 @@ public class OLSDocs2 {
         });
 
         Array.of("Beta", "Alpha").forEach(coefficient -> {
-            Chart.hist(results, coefficient, 250, chart -> {
+            Chart.create().withHistPlot(results, 250, coefficient, chart -> {
                 final double mean = results.colAt(coefficient).stats().mean();
                 final double stdDev = results.colAt(coefficient).stats().stdDev();
                 final double actual = coefficient.equals("Beta") ? actBeta : actAlpha;
@@ -180,7 +140,7 @@ public class OLSDocs2 {
                 final String subtitle = "Actual: %.4f, Mean: %.4f, StdDev: %.4f";
                 chart.title().withText(String.format(title, coefficient, regressionCount, n));
                 chart.subtitle().withText(String.format(subtitle, actual, mean, stdDev));
-                chart.writerPng(new File(String.format("../morpheus-docs/docs/images/ols/ols-%s-unbiased.png", coefficient)), 700, 400);
+                chart.writerPng(new File(String.format("./docs/images/ols/ols-%s-unbiased.png", coefficient)), 700, 400, true);
                 chart.show(700, 400);
             });
         });
@@ -201,7 +161,7 @@ public class OLSDocs2 {
         final double actBeta = 1.45d;
         final double sigma = 20d;
         final int regressionCount = 100000;
-        final Range<Integer> sampleSizes = Range.of(100, 600, 100);
+        final Range<Integer> sampleSizes = Range.of(20, 120, 20);
         final Range<Integer> rows = Range.of(0, regressionCount);
         final DataFrame<Integer,String> results = DataFrame.of(rows, String.class, columns -> {
             sampleSizes.forEach(n -> {
@@ -228,12 +188,12 @@ public class OLSDocs2 {
 
         Array.of("Beta", "Alpha").forEach(coeff -> {
             final DataFrame<Integer,String> coeffResults = results.cols().select(col -> col.key().startsWith(coeff));
-            Chart.hist(coeffResults, 250, chart -> {
-                chart.axes().domain().label().withText("Coefficient Estimate");
+            Chart.create().withHistPlot(coeffResults, 250, true, chart -> {
+                chart.plot().axes().domain().label().withText("Coefficient Estimate");
                 chart.title().withText(coeff + " Histograms of " + regressionCount + " Regressions");
                 chart.subtitle().withText(coeff + " Variance decreases as sample size increases");
                 chart.legend().on().bottom();
-                chart.writerPng(new File(String.format("../morpheus-docs/docs/images/ols/ols-%s-consistency.png", coeff.toLowerCase())), 700, 400);
+                chart.writerPng(new File(String.format("./docs/images/ols/ols-%s-consistency.png", coeff.toLowerCase())), 700, 400, true);
                 chart.show(700, 400);
             });
         });
@@ -251,22 +211,22 @@ public class OLSDocs2 {
             }).cols().stats().variance();
         });
 
-        ChartEngine.getDefaultEngine().show(1, 2, Array.of(
-            Chart.of(variances.getValue(0), chart -> {
-                chart.plot(0).withBars(0d);
-                chart.style(StatType.VARIANCE).withColor(new Color(255, 100, 100));
+        Chart.show(2, Collect.asList(
+            Chart.create().withBarPlot(variances.getValue(0), false, chart -> {
                 chart.title().withText("Beta variance with sample size");
-                chart.axes().range(0).label().withText("Beta Variance");
-                chart.axes().domain().label().withText("Sample Size");
+                chart.plot().style(StatType.VARIANCE).withColor(new Color(255, 100, 100));
+                chart.plot().axes().range(0).label().withText("Beta Variance");
+                chart.plot().axes().domain().label().withText("Sample Size");
+                chart.writerPng(new File("./docs/images/ols/ols-beta-variance.png"), 350, 200, true);
             }),
-            Chart.of(variances.getValue(1), chart -> {
-                chart.plot(0).withBars(0d);
-                chart.style(StatType.VARIANCE).withColor(new Color(102, 204, 255));
+            Chart.create().withBarPlot(variances.getValue(1), false, chart -> {
                 chart.title().withText("Alpha variance with sample size");
-                chart.axes().range(0).label().withText("Alpha Variance");
-                chart.axes().domain().label().withText("Sample Size");
-            }))
-        );
+                chart.plot().style(StatType.VARIANCE).withColor(new Color(102, 204, 255));
+                chart.plot().axes().range(0).label().withText("Alpha Variance");
+                chart.plot().axes().domain().label().withText("Sample Size");
+                chart.writerPng(new File("./docs/images/ols/ols-alpha-variance.png"), 350, 200, true);
+            })
+        ));
 
         Thread.currentThread().join();
     }

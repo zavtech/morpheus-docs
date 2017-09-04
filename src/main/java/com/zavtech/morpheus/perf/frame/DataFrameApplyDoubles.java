@@ -28,19 +28,19 @@ public class DataFrameApplyDoubles {
         //Time sequential and parallel capping of all elements in the DataFrame
         ToDoubleFunction<DataFrameValue<Integer,String>> cap = (v) -> v.getDouble() > 0.5 ? 0.5 : v.getDouble();
         DataFrame<String,String> timing = PerfStat.run(count, TimeUnit.MILLISECONDS, true, tasks -> {
+            tasks.beforeEach(() -> frame.applyDoubles(v -> Math.random()));
             tasks.put("Sequential", () -> frame.sequential().applyDoubles(cap));
             tasks.put("Parallel", () -> frame.parallel().applyDoubles(cap));
         });
 
         //Plot timing statistics as a bar chart
-        Chart.of(timing, chart -> {
-            chart.plot(0).withBars(0d);
+        Chart.create().withBarPlot(timing, false, chart -> {
             chart.title().withText("Time to Cap 200 Million DataFrame Elements (Sample 10 times)");
             chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
-            chart.axes().domain().label().withText("Timing Statistic");
-            chart.axes().range(0).label().withText("Total Time in Milliseconds");
+            chart.plot().axes().domain().label().withText("Timing Statistic");
+            chart.plot().axes().range(0).label().withText("Total Time in Milliseconds");
             chart.legend().on();
-            chart.writerPng(new File("./morpheus-docs/docs/images/data-frame-apply-doubles.png"), 845, 400);
+            chart.writerPng(new File("./docs/images/frame/data-frame-apply-doubles.png"), 845, 400, true);
             chart.show();
         });
     }

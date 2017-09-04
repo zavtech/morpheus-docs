@@ -26,7 +26,9 @@ row axis is more expensive to create than one with an `Integer` axis. With that 
 provides a comforting picture with regard to the fairly linear scalability of performance as the 
 row count increases, and the absolute times involved are also re-assuring.
 
-![Plot](../images/data-frame-init-times.png)
+<p align="center">
+    <img class="chart" src="../../images/frame/data-frame-init-times.png"/>
+</p>
 **Figure 1. Large DataFrame construction times can be affected by the complexity of the largest axis.**
 
 #### Memory
@@ -48,15 +50,19 @@ explains over 90% of the memory used by this frame. This implies very little obj
 supporting classes that make up the `DataFrame`, and also suggests that garbage collection times 
 should be minimal, which we will discuss in a following section.
 
-![Plot](../images/data-frame-memory.png)
+<p align="center">
+    <img class="chart" src="../../images/frame/data-frame-memory.png"/>
+</p>
 **Figure 2. Memory usage for a DataFrame with 50 million 64-bit double precision values and various row key types.** 
 
-As you would expect, a `DataFrame` is generally very friendly the the garbage collector, so even creating 
+As you would expect, a `DataFrame` is generally very friendly to the garbage collector, so even creating 
 a large frame will not result in excessively long GC times. The chart below illustrates the times to 
 deallocate the DataFrame in this test, and both the magnitude and the small sampling noise in these
 results is comforting.
 
-![Plot](../images/data-frame-gc-times.png)
+<p align="center">
+    <img class="chart" src="../../images/frame/data-frame-gc-times.png"/>
+</p>
 **Figure 3. The GC times are small in magnitude and demonstrate low sampling noise in the results.** 
 
 #### Row Iteration
@@ -66,20 +72,22 @@ some relevant analysis on each row. For example, consider a DataFrame with 50 mi
 columns containing random double precision values. The chart below shows how performance compares 
 between sequential and parallel execution for a routine that computes the arithmetic mean of each row. 
 
-![Plot](../images/data-frame-row-iteration.png)
+<p align="center">
+    <img class="chart" src="../../images/frame/data-frame-row-iteration.png"/>
+</p>
 **Figure 4. The parallel version of the result shows up to 50 million rows processed per second.** 
 
 The code to generate these results is as follows:
 
 <?prettify?>
-```
+```java
 //Sample size for timing statistics
 int sample = 10;
 
 //Create frame with 50 million rows of Random doubles
-Range<Integer> rowKeys = Range.of(0, 50000000);
-Array<String> colKeys = Array.of("A", "B", "C", "D");
-DataFrame<Integer,String> frame = DataFrame.ofDoubles(rowKeys, colKeys).mapDoubles(v -> Math.random());
+Range<Integer> rowKeys = Range.of(0, 10000000);
+Array<String> colKeys = Array.of("A", "B", "C", "D", "E", "F", "H");
+DataFrame<Integer,String> frame = DataFrame.ofDoubles(rowKeys, colKeys).applyDoubles(v -> Math.random());
 
 //Time sequential and parallel computation of mean over all rows
 DataFrame<String,String> timing = PerfStat.run(sample, TimeUnit.MILLISECONDS, false, tasks -> {
@@ -94,14 +102,12 @@ DataFrame<String,String> timing = PerfStat.run(sample, TimeUnit.MILLISECONDS, fa
 });
 
 //Plot timing statistics as a bar chart
-Chart.of(timing, chart -> {
-    chart.plot(0).withBars(0d);
+Chart.create().withBarPlot(timing, false, chart -> {
     chart.title().withText("Time to Compute Arithmetic Mean of 50 Million rows (Sample 10 times)");
     chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
-    chart.axes().domain().label().withText("Timing Statistic");
-    chart.axes().range(0).label().withText("Total Time in Milliseconds");
+    chart.plot().axes().domain().label().withText("Timing Statistic");
+    chart.plot().axes().range(0).label().withText("Total Time in Milliseconds");
     chart.legend().on();
-    chart.writerPng(new File("./morpheus-docs/docs/images/data-frame-row-iteration.png"), 845, 400);
     chart.show();
 });
 ```
@@ -116,35 +122,37 @@ to iterate over all these values, and capping values at 0.5 if they exceed that 
 performance improvement through parallel execution, and one could expect even larger differences as the 
 complexity of the apply function increases.
 
-![Plot](../images/data-frame-apply-doubles.png)
+<p align="center">
+    <img class="chart" src="../../images/frame/data-frame-apply-doubles.png"/>
+</p>
 **Figure 5. Inspecting 200 million DataFrame elements and capping values > 0.5 in a little over a second.** 
 
 The code to generate these results is as follows:
 
 <?prettify?>
-```
+```java
 //Sample size for timing statistics
-int count = 20;
+int count = 10;
 
 //Create frame with 50 million rows of Random doubles
 Range<Integer> rowKeys = Range.of(0, 50000000);
 Array<String> colKeys = Array.of("A", "B", "C", "D");
-DataFrame<Integer,String> frame = DataFrame.ofDoubles(rowKeys, colKeys).mapDoubles(v -> Math.random());
+DataFrame<Integer,String> frame = DataFrame.ofDoubles(rowKeys, colKeys).applyDoubles(v -> Math.random());
 
 //Time sequential and parallel capping of all elements in the DataFrame
 ToDoubleFunction<DataFrameValue<Integer,String>> cap = (v) -> v.getDouble() > 0.5 ? 0.5 : v.getDouble();
-DataFrame<String,String> timing = Timing.time(count, TimeUnit.MILLISECONDS, tasks -> {
+DataFrame<String,String> timing = PerfStat.run(count, TimeUnit.MILLISECONDS, true, tasks -> {
+    tasks.beforeEach(() -> frame.applyDoubles(v -> Math.random()));
     tasks.put("Sequential", () -> frame.sequential().applyDoubles(cap));
     tasks.put("Parallel", () -> frame.parallel().applyDoubles(cap));
 });
 
 //Plot timing statistics as a bar chart
-Chart.of(timing, chart -> {
-    chart.plot(0).withBars(0d);
-    chart.title().withText("Timing Statistics: Cap 200 Million DataFrame Elements (Sample 20 times)");
+Chart.create().withBarPlot(timing, false, chart -> {
+    chart.title().withText("Time to Cap 200 Million DataFrame Elements (Sample 10 times)");
     chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
-    chart.axes().domain().label().withText("Timing Statistic");
-    chart.axes().range(0).label().withText("Total Time in Milliseconds");
+    chart.plot().axes().domain().label().withText("Timing Statistic");
+    chart.plot().axes().range(0).label().withText("Total Time in Milliseconds");
     chart.legend().on();
     chart.show();
 });

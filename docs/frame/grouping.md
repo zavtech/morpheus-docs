@@ -369,10 +369,14 @@ function increases, which is exactly what we see in the subsequent plot.
 * **Town/City**: 1161 Groups
 * **Locality**: 16800 Groups
 
-![Plot](../images/frame/data-frame-group-by-0.png)
+<p align="center">
+    <img class="chart" src="../../images/frame/data-frame-group-by-0.png"/>
+</p>
 Running this same example with **parallel execution** yields a similar trend, but the absolute times are much smaller.
 
-![Plot](../images/frame/data-frame-group-by-1.png)
+<p align="center">
+    <img class="chart" src="../../images/frame/data-frame-group-by-1.png"/>
+</p>
 The following code is used to generate the above results, for the sequential execution.
 
 <?prettify?>
@@ -381,10 +385,10 @@ The following code is used to generate the above results, for the sequential exe
 DataFrame<Integer,String> frame = loadHousePrices(2006);
 
 //Run 10 iterations of sequential and parallel group by Town/City
-DataFrame<String,String> results = PerfStat.run(10, TimeUnit.MILLISECONDS, false, tasks -> {
+DataFrame<String,String> results = PerfStat.run(5, TimeUnit.MILLISECONDS, false, tasks -> {
     tasks.put("PropertyType", () -> frame.rows().groupBy("PropertyType"));
     tasks.put("Month", () -> frame.rows().groupBy(row -> {
-        final LocalDate date = row.getValue("Date");
+        final LocalDateTime date = row.getValue("Date");
         return Tuple.of(date.getMonth());
     }));
     tasks.put("County", () -> frame.rows().groupBy("County"));
@@ -394,10 +398,9 @@ DataFrame<String,String> results = PerfStat.run(10, TimeUnit.MILLISECONDS, false
 });
 
 //Plot the results of the combined DataFrame with timings
-Chart.of(results, chart -> {
-    chart.plot(0).withBars(0d);
-    chart.axes().domain().label().withText("Timing Statistic");
-    chart.axes().range(0).label().withText("Time In Milliseconds");
+Chart.create().withBarPlot(results, false, chart -> {
+    chart.plot().axes().domain().label().withText("Timing Statistic");
+    chart.plot().axes().range(0).label().withText("Time In Milliseconds");
     chart.title().withText("1-Dimensional Grouping of 1.35 Million Rows (Sequential)");
     chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
     chart.subtitle().withText("Grouping of UK House Price Transactions in 2006 by various columns");
@@ -413,7 +416,9 @@ in the previous section. The timing statistics below seem to indicate the parall
 over twice as fast as the sequential algorithm. This result bodes well as this is the simplest possible group-by scenatio, 
 and we would expect the parallel algorithm to perform even better as the grouping complexity increases.
 
-![Plot](../images/frame/data-frame-group-by-2.png)
+<p align="center">
+    <img class="chart" src="../../images/frame/data-frame-group-by-2.png"/>
+</p>
 The following code is used to generate the above results.
 
 <?prettify?>
@@ -428,10 +433,9 @@ DataFrame<String,String> results = PerfStat.run(10, TimeUnit.MILLISECONDS, false
 });
 
 //Plot the results of the combined DataFrame with timings
-Chart.of(results, chart -> {
-    chart.plot(0).withBars(0d);
-    chart.axes().domain().label().withText("Timing Statistic");
-    chart.axes().range(0).label().withText("Time In Milliseconds");
+Chart.create().withBarPlot(results, false, chart -> {
+    chart.plot().axes().domain().label().withText("Timing Statistic");
+    chart.plot().axes().range(0).label().withText("Time In Milliseconds");
     chart.title().withText("1-Dimensional Grouping of 1.35 Million Rows");
     chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
     chart.subtitle().withText("Grouping of UK House Price Transactions in 2006 by County");
@@ -451,7 +455,9 @@ be 1.
 The plot below indicates adding another dimension is significant, although using parallel execution can mostly
 discount the additional cost, at least in this scenario.
 
-![Plot](../images/frame/data-frame-group-by-3.png)
+<p align="center">
+    <img class="chart" src="../../images/frame/data-frame-group-by-3.png"/>
+</p>
 The following code is used to generate the above results.
 
 <?prettify?>
@@ -468,10 +474,9 @@ DataFrame<String,String> results = PerfStat.run(10, TimeUnit.MILLISECONDS, false
 });
 
 //Plot the results of the combined DataFrame with timings
-Chart.of(results, chart -> {
-    chart.plot(0).withBars(0d);
-    chart.axes().domain().label().withText("Timing Statistic");
-    chart.axes().range(0).label().withText("Time In Milliseconds");
+Chart.create().withBarPlot(results, false, chart -> {
+    chart.plot().axes().domain().label().withText("Timing Statistic");
+    chart.plot().axes().range(0).label().withText("Time In Milliseconds");
     chart.title().withText("1-Dimension vs 2-Dimensional Grouping of 1.35 Million Rows");
     chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
     chart.subtitle().withText("Grouping of UK House Price Transactions in 2006 by County x 2");
@@ -493,7 +498,9 @@ In this example we perform a two-dimensional group by using the `County` first, 
 The results in the subsequent plot suggests there is a very small performance cost to using the second style,
 however it is fairly neglible in this case.
 
-![Plot](../images/frame/data-frame-group-by-4.png)
+<p align="center">
+    <img class="chart" src="../../images/frame/data-frame-group-by-4.png"/>
+</p>
 The following code is used to generate the above results.
 
 <?prettify?>
@@ -502,7 +509,7 @@ The following code is used to generate the above results.
 DataFrame<Integer,String> frame = loadHousePrices(2006);
 
 //Run 10 iterations of sequential and parallel group by County and Town/City
-DataFrame<String,String> results = PerfStat.run(10, TimeUnit.MILLISECONDS, false, tasks -> {
+DataFrame<String,String> results = PerfStat.run(5, TimeUnit.MILLISECONDS, false, tasks -> {
     tasks.put("Method-1", () -> frame.rows().groupBy("County", "Town/City"));
     tasks.put("Method-2", () -> frame.rows().groupBy(row -> Tuple.of(
         row.<String>getValue("County"),
@@ -511,10 +518,9 @@ DataFrame<String,String> results = PerfStat.run(10, TimeUnit.MILLISECONDS, false
 });
 
 //Plot the results of the combined DataFrame with timings
-Chart.of(results, chart -> {
-    chart.plot(0).withBars(0d);
-    chart.axes().domain().label().withText("Timing Statistic");
-    chart.axes().range(0).label().withText("Time In Milliseconds");
+Chart.create().withBarPlot(results, false, chart -> {
+    chart.plot().axes().domain().label().withText("Timing Statistic");
+    chart.plot().axes().range(0).label().withText("Time In Milliseconds");
     chart.title().withText("2-Dimensional Grouping of 1.35 Million Rows");
     chart.title().withFont(new Font("Verdana", Font.PLAIN, 15));
     chart.subtitle().withText("Grouping of UK House Price Transactions in 2006 by County & Town/City");

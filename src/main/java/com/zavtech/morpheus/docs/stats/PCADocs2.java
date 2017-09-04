@@ -137,16 +137,15 @@ public class PCADocs2 {
         });
 
         DataFrame<Integer,String> chartData = result.rows().select(c -> c.ordinal() < 10).copy();
-        Chart.of(chartData.rows().mapKeys(r -> String.valueOf(r.ordinal())), chart -> {
-            chart.plot(0).withBars(0d);
-            chart.style("Red").withColor(Color.RED);
-            chart.style("Green").withColor(Color.GREEN);
-            chart.style("Blue").withColor(Color.BLUE);
-            chart.axes().range(0).label().withText("Percent of Variance");
-            chart.axes().domain().label().withText("Principal Component");
+        Chart.create().withBarPlot(chartData.rows().mapKeys(r -> String.valueOf(r.ordinal())), false, chart -> {
+            chart.plot().style("Red").withColor(Color.RED);
+            chart.plot().style("Green").withColor(Color.GREEN);
+            chart.plot().style("Blue").withColor(Color.BLUE);
+            chart.plot().axes().range(0).label().withText("Percent of Variance");
+            chart.plot().axes().domain().label().withText("Principal Component");
             chart.title().withText("Eigen Spectrum (Percent of Explained Variance)");
             chart.legend().on().bottom();
-            chart.writerPng(new File("../morpheus-docs/docs/images/pca/poppet-explained-variance.png"), 700, 400);
+            chart.writerPng(new File("./docs/images/pca/poppet-explained-variance.png"), 700, 400, true);
             chart.show();
         });
 
@@ -171,9 +170,8 @@ public class PCADocs2 {
             return (double)file.length();
         });
 
-        Chart.of(frame, chart -> {
-            chart.plot(0).withBars(0d);
-            chart.data().at(0).withDomainInterval(v -> v + 1);
+        Chart.create().withBarPlot(frame, false, chart -> {
+            chart.plot().data().at(0).withLowerDomainInterval(v -> v + 1);
             chart.show();
         });
 
