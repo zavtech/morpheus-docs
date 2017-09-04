@@ -63,6 +63,18 @@ img.chart {
     border:none;
 }
 
+img.smallChart {
+    background:none;
+    border:none;
+    padding: 0;
+    margin: 0;
+}
+
+div.smallChart {
+    float:left;
+    width:50%;
+}
+
 .navbar-default .navbar-nav > .active > a,
 .navbar-default .navbar-nav > .active > a:hover,
 .navbar-default .navbar-nav > .active > a:active,
