@@ -43,6 +43,7 @@ pages:
   - Visualization:
       - Charts:
         - Overview: viz/charts/overview.md
+        - Embedding (HTML): viz/charts/embed.md
         - Gallery (Google): viz/charts/gallery1.md
         - Gallery (JFree): viz/charts/gallery2.md
       - Tables: viz/tables/overview.md
