@@ -40,6 +40,8 @@ pages:
     - Principal Component Analysis: analysis/pca.md
     - Linear Algebra: analysis/linearalgebra.md
     - Time Series Analysis: analysis/timeseries.md
+    - Examples:
+      - Modern Portfolio Theory: examples/mpt.md
   - Visualization:
       - Charts:
         - Overview: viz/charts/overview.md
@@ -49,8 +51,8 @@ pages:
       - Tables: viz/tables/overview.md
   - Data Sources:
     - Quandl: providers/quandl.md
+    - Federal Reserve: providers/fred.md
     - Google Finance: providers/google.md
     - Yahoo Finance: providers/yahoo.md
-    - Federal Reserve: providers/fred.md
     - World Bank: providers/world-bank.md
 
