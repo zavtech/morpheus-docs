@@ -192,11 +192,11 @@ public class WritingDocs {
             post.setContent(bytes);
             post.setContentType("application/x-gzip");
             post.setContentLength(bytes.length);
-            post.setResponseHandler((status, stream) -> {
-                if (status.getCode() == 200) {
+            post.setResponseHandler(response -> {
+                if (response.getStatus().getCode() == 200) {
                     return Optional.empty();
                 } else {
-                    throw new RuntimeException("Failed with response: " + status);
+                    throw new RuntimeException("Failed with response: " + response.getStatus().getCode());
                 }
             });
         });

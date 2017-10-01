@@ -26,7 +26,7 @@
       <arg value="zavtech@zavtech:zavtech.com/morpheus/versions/${version}/docs"/>
     </exec>
 
-    <echo message="Linking docs to version ${version}..."/>
+    <!--echo message="Linking docs to version ${version}..."/>
     <exec executable="ssh" failonerror="true">
       <arg value="zavtech@zavtech"/>
       <arg value="cd zavtech.com/morpheus; rm docs"/>
@@ -41,7 +41,7 @@
       <arg value="-r"/>
       <arg value="./"/>
       <arg value="zavtech@zavtech:zavtech.com/morpheus"/>
-    </exec>
+    </exec-->
 
   </target>
 </project>
