@@ -63,20 +63,23 @@ file with various customizations applied via the `CsvSinkOptions` object. The cu
 <?prettify?>
 ```java
 frame.write().csv(options -> {
-    options.setFile("/Users/witdxav/morpheus/tests/DataFrame-1.csv");
+    options.setFile("DataFrame-1.csv");
     options.setSeparator(",");
     options.setIncludeRowHeader(true);
     options.setIncludeColumnHeader(true);
     options.setNullText("null");
     options.setTitle("Date");
-    options.setRowKeyPrinter(LocalDate::toString);
+
+    DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd/MMM/yyyy");
+    options.setRowKeyPrinter(Printer.ofLocalDate(dateFormat));
+
     options.setFormats(formats -> {
         DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm");
         DateTimeFormatter dateTimeFormat = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm");
         formats.setDecimalFormat(Double.class, "0.00##;-0.00##", 1);
-        formats.<Month>setPrinter("Column-2", v -> v.name().toLowerCase());
-        formats.<LocalTime>setPrinter("Column-1", timeFormat::format);
-        formats.<LocalDateTime>setPrinter("Column-5", dateTimeFormat::format);
+        formats.setPrinter("Column-2", Printer.ofLocalTime(timeFormat));
+        formats.<Month>setPrinter("Column-3", Printer.forObject(m -> m.name().toLowerCase()));
+        formats.setPrinter("Column-6", Printer.ofLocalDateTime(dateTimeFormat));
     });
 });
 ```
@@ -166,14 +169,14 @@ to the simple name of the class.
 <?prettify?>
 ```java
 frame.write().json(options -> {
-    options.setFile("/Users/witdxav/morpheus/tests/DataFrame-1.json");
+    options.setFile("DataFrame-1.json");
     options.setEncoding("UTF-8");
     options.setFormats(formats -> {
         DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm");
         DateTimeFormatter dateTimeFormat = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm");
-        formats.<Month>setPrinter("Column-2", v -> v.name().toLowerCase());
-        formats.<LocalTime>setPrinter("Column-1", timeFormat::format);
-        formats.<LocalDateTime>setPrinter("Column-5", dateTimeFormat::format);
+        formats.setPrinter("Column-2", Printer.ofLocalTime(timeFormat));
+        formats.<Month>setPrinter("Column-3", Printer.forObject(m -> m.name().toLowerCase()));
+        formats.setPrinter("Column-6", Printer.ofLocalDateTime(dateTimeFormat));
     });
 });
 ```
